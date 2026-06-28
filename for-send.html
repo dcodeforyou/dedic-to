@@ -99,7 +99,7 @@
     .sc1-clear:hover { background: rgba(255,91,173,.20); color: #FF5BAD; }
 
     /* ═══ SEND FORM ═════════════════════════════════════════════ */
-    .send-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 0; }
+    .send-form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 0; margin-top: 22px; }
     .message-textarea { width: 100%; background: rgba(255,255,255,.68); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid rgba(180,160,225,.45); border-radius: 14px; padding: 14px 16px; font-size: 14px; font-family: var(--font); color: var(--text-primary); outline: none; resize: none; min-height: 88px; line-height: 1.6; transition: border-color .2s, background .2s; -webkit-appearance: none; }
     .message-textarea::placeholder { color: var(--text-muted); font-style: italic; }
     .message-textarea:focus { border-color: rgba(124,77,255,.50); background: rgba(255,255,255,.85); }
@@ -110,41 +110,6 @@
     .send-btn:hover:not(:disabled) { background: var(--purple-deep); }
     .send-btn:active:not(:disabled) { transform: scale(.97); }
     .send-btn:disabled { opacity: .34; cursor: default; }
-
-    /* ═══ RELATION TAGS ════════════════════════════════════════ */
-    .tag-row { width: 100%; max-width: 420px; margin-top: 22px; margin-bottom: 14px; }
-    .tag-row-label { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 9px; }
-    .tag-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag-pill {
-      padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
-      font-family: var(--font); cursor: pointer; border: 1.5px solid;
-      transition: background .18s, color .18s, border-color .18s, box-shadow .18s, transform .12s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .tag-pill:active { transform: scale(.93); }
-    /* BFF — pink */
-    .tag-pill[data-tag="BFF"]        { color:#FF6B9D; border-color:rgba(255,107,157,.38); background:rgba(255,107,157,.08); }
-    .tag-pill[data-tag="BFF"].active  { color:#fff;    border-color:#FF6B9D;               background:#FF6B9D; }
-    /* Girlfriend — rose */
-    .tag-pill[data-tag="Girlfriend"]        { color:#FF4D6D; border-color:rgba(255,77,109,.38);  background:rgba(255,77,109,.08); }
-    .tag-pill[data-tag="Girlfriend"].active  { color:#fff;    border-color:#FF4D6D;               background:#FF4D6D; }
-    /* Boyfriend — sky blue */
-    .tag-pill[data-tag="Boyfriend"]        { color:#4A9EFF; border-color:rgba(74,158,255,.38);  background:rgba(74,158,255,.08); }
-    .tag-pill[data-tag="Boyfriend"].active  { color:#fff;    border-color:#4A9EFF;               background:#4A9EFF; }
-    /* Wife — gold */
-    .tag-pill[data-tag="Wife"]        { color:#FFB830; border-color:rgba(255,184,48,.38);  background:rgba(255,184,48,.08); }
-    .tag-pill[data-tag="Wife"].active  { color:#0D0A18; border-color:#FFB830;               background:#FFB830; }
-
-    /* dark mode tags */
-    body.dark .tag-row-label { color: #6B5F8C; }
-    body.dark .tag-pill[data-tag="BFF"]              { color:#FF8FC2; border-color:rgba(255,143,194,.28); background:rgba(255,143,194,.09); }
-    body.dark .tag-pill[data-tag="BFF"].active        { color:#fff;    border-color:#FF6B9D; background:#FF6B9D; box-shadow:0 0 16px rgba(255,107,157,.45); }
-    body.dark .tag-pill[data-tag="Girlfriend"]        { color:#FF7090; border-color:rgba(255,112,144,.28); background:rgba(255,112,144,.09); }
-    body.dark .tag-pill[data-tag="Girlfriend"].active  { color:#fff;    border-color:#FF4D6D; background:#FF4D6D; box-shadow:0 0 16px rgba(255,77,109,.45); }
-    body.dark .tag-pill[data-tag="Boyfriend"]         { color:#6DB5FF; border-color:rgba(109,181,255,.28); background:rgba(109,181,255,.09); }
-    body.dark .tag-pill[data-tag="Boyfriend"].active   { color:#fff;    border-color:#4A9EFF; background:#4A9EFF; box-shadow:0 0 16px rgba(74,158,255,.45); }
-    body.dark .tag-pill[data-tag="Wife"]              { color:#FFD060; border-color:rgba(255,208,96,.28);  background:rgba(255,208,96,.09); }
-    body.dark .tag-pill[data-tag="Wife"].active        { color:#0D0A18; border-color:#FFB830; background:#FFB830; box-shadow:0 0 16px rgba(255,184,48,.45); }
 
     /* ═══ CONFIRM CARD ══════════════════════════════════════════ */
     .confirm-card {
@@ -478,16 +443,6 @@
       </div>
     </div>
 
-    <div class="tag-row">
-      <div class="tag-row-label">you are their</div>
-      <div class="tag-pills">
-        <button class="tag-pill" data-tag="BFF">BFF</button>
-        <button class="tag-pill" data-tag="Girlfriend">Girlfriend</button>
-        <button class="tag-pill" data-tag="Boyfriend">Boyfriend</button>
-        <button class="tag-pill" data-tag="Wife">Wife</button>
-      </div>
-    </div>
-
     <div class="send-form">
       <textarea class="message-textarea" id="message-input" maxlength="120" placeholder="say something anonymous..." rows="3"></textarea>
       <div class="char-count"><span id="char-count">0</span>/120</div>
@@ -787,7 +742,7 @@ document.addEventListener('touchstart',e=>{const t=e.touches[0];hoverStickerPixe
 // ════════════════════════════════════════════════════════════
 //  APP STATE
 // ════════════════════════════════════════════════════════════
-const app = { song: null, artUrl: null, message: '', tag: null };
+const app = { song: null, artUrl: null, message: '' };
 let popupSong = null, popupArtUrl = null;
 let pageHash = null;
 
@@ -1004,23 +959,6 @@ function renderResults(tracks) {
 }
 
 // ════════════════════════════════════════════════════════════
-//  RELATION TAGS
-// ════════════════════════════════════════════════════════════
-document.querySelectorAll('.tag-pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tag = btn.dataset.tag;
-    if (app.tag === tag) {
-      app.tag = null;
-      document.querySelectorAll('.tag-pill').forEach(b => b.classList.remove('active'));
-    } else {
-      app.tag = tag;
-      document.querySelectorAll('.tag-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
-  });
-});
-
-// ════════════════════════════════════════════════════════════
 //  MESSAGE
 // ════════════════════════════════════════════════════════════
 const $msg    = document.getElementById('message-input');
@@ -1039,9 +977,7 @@ document.getElementById('send-btn').addEventListener('click', async () => {
   const errEl = document.getElementById('send-error');
   btn.disabled = true; btn.textContent = 'sending…'; errEl.classList.remove('show');
 
-  const taggedMessage = app.tag
-    ? (app.message ? `from your ${app.tag} ♡\n${app.message}` : `from your ${app.tag} ♡`)
-    : (app.message || null);
+  const sendMsg = app.message || null;
 
   // ── TEST MODE: save to localStorage ─────────────────────────
   const testRaw = localStorage.getItem('dedic-test-session');
@@ -1055,7 +991,7 @@ document.getElementById('send-btn').addEventListener('click', async () => {
       preview_url:  app.song.previewUrl || null,
       clip_start:   0,
       clip_duration: 15,
-      message:      taggedMessage,
+      message:      sendMsg,
       created_at:   new Date().toISOString(),
     };
     const existing = JSON.parse(localStorage.getItem('dedic-test-dedications') || '[]');
@@ -1074,7 +1010,7 @@ document.getElementById('send-btn').addEventListener('click', async () => {
     preview_url:   app.song.previewUrl || null,
     clip_start:    0,
     clip_duration: 15,
-    message:       taggedMessage,
+    message:       sendMsg,
   });
 
   if (error) {
@@ -1090,9 +1026,8 @@ document.getElementById('send-btn').addEventListener('click', async () => {
 //  CONFIRM — dedicate another
 // ════════════════════════════════════════════════════════════
 document.getElementById('confirm-again').addEventListener('click', () => {
-  app.song = null; app.artUrl = null; app.message = ''; app.tag = null;
+  app.song = null; app.artUrl = null; app.message = '';
   $msg.value = ''; $charCt.textContent = '0';
-  document.querySelectorAll('.tag-pill').forEach(b => b.classList.remove('active'));
   document.getElementById('send-error').classList.remove('show');
   updateSongCard();
   showView('view-send');
