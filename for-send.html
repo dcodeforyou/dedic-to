@@ -911,10 +911,10 @@ async function fetchSongs(q) {
   }
 
   const strategies = [
+    () => tFetch(`/api/search?q=${encodeURIComponent(q)}`),
     () => tFetch(directUrl),
-    () => waitMs(600).then(() => tFetch(directUrl)),
+    () => waitMs(500).then(() => tFetch(directUrl)),
     () => tFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`, { credentials: 'omit' }),
-    () => tFetch(`https://corsproxy.io/?${encodeURIComponent(directUrl)}`),
   ];
 
   for (const strategy of strategies) {

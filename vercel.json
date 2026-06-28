@@ -1,8 +1,11 @@
 {
-  "routes": [
-    { "src": "/", "dest": "/create.html" },
-    { "src": "/for", "dest": "/for.html" },
-    { "src": "/for-inbox", "dest": "/for-inbox.html" },
-    { "src": "/for-send", "dest": "/for-send.html" }
+  "functions": {
+    "api/search.js": { "runtime": "nodejs18.x" }
+  },
+  "rewrites": [
+    { "source": "/for-send", "destination": "/for-send.html" },
+    { "source": "/for-inbox", "destination": "/for-inbox.html" },
+    { "source": "/for", "destination": "/for.html" },
+    { "source": "/", "destination": "/create.html" }
   ]
 }
