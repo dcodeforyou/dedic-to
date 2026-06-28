@@ -1250,6 +1250,16 @@ $pInput.addEventListener('input', e => {
   $pLoading.classList.add('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
   debounceT = setTimeout(() => fetchSongs(q), 340);
 });
+// iOS "Search" keyboard button fires 'search' event; Enter key fires keydown — both trigger immediately
+function triggerSearchNow() {
+  const q = $pInput.value.trim();
+  if (!q) return;
+  clearTimeout(debounceT);
+  $pLoading.classList.add('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
+  fetchSongs(q);
+}
+$pInput.addEventListener('search', triggerSearchNow);
+$pInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); triggerSearchNow(); } });
 function clearResults() { $pLoading.classList.remove('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show'); }
 async function fetchSongs(q) {
   if (searchCtrl) searchCtrl.abort();

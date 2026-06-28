@@ -869,6 +869,15 @@ $pInput.addEventListener('input', e => {
   $pLoading.classList.add('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
   debounceT = setTimeout(() => fetchSongs(q), 340);
 });
+function triggerSearchNow() {
+  const q = $pInput.value.trim();
+  if (!q) return;
+  clearTimeout(debounceT);
+  $pLoading.classList.add('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
+  fetchSongs(q);
+}
+$pInput.addEventListener('search', triggerSearchNow);
+$pInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); triggerSearchNow(); } });
 
 function clearResults() {
   $pLoading.classList.remove('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
