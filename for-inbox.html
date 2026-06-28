@@ -159,8 +159,10 @@
       padding: 28px 16px 80px;
       min-height: 100vh;
     }
-    .create-nudge { font-size: 11px; color: var(--text-muted); text-decoration: none; margin-top: 32px; transition: color .15s; -webkit-tap-highlight-color: transparent; }
-    .create-nudge:hover { color: var(--purple); }
+    .create-nudge { display: block; text-align: center; font-size: 13px; font-weight: 600; color: var(--purple); text-decoration: none; margin-top: 32px; padding: 9px 20px; background: rgba(124,77,255,0.08); border: 1.5px solid rgba(124,77,255,0.22); border-radius: 24px; transition: background .15s, border-color .15s; -webkit-tap-highlight-color: transparent; }
+    .create-nudge:hover, .create-nudge:active { background: rgba(124,77,255,0.15); border-color: rgba(124,77,255,0.42); }
+    body.dark .create-nudge { color: var(--neon); background: rgba(190,255,41,0.07); border-color: rgba(190,255,41,0.22); }
+    body.dark .create-nudge:hover, body.dark .create-nudge:active { background: rgba(190,255,41,0.14); border-color: rgba(190,255,41,0.42); }
 
     /* ── Site logo ─────────────────────────────────────────────────────────── */
     .site-logo {

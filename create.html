@@ -252,8 +252,10 @@
 
     .dedicate-again { font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; background: none; border: none; font-family: var(--font); transition: color .15s; -webkit-tap-highlight-color: transparent; }
     .dedicate-again:hover { color: var(--purple); }
-    .for-page-nudge { display: block; font-size: 11px; color: var(--text-muted); text-decoration: none; margin-top: 14px; transition: color .15s; -webkit-tap-highlight-color: transparent; }
-    .for-page-nudge:hover { color: var(--purple); }
+    .for-page-nudge { display: block; text-align: center; font-size: 13px; font-weight: 600; color: var(--purple); text-decoration: none; margin-top: 16px; padding: 9px 20px; background: rgba(124,77,255,0.08); border: 1.5px solid rgba(124,77,255,0.22); border-radius: 24px; transition: background .15s, border-color .15s; -webkit-tap-highlight-color: transparent; }
+    .for-page-nudge:hover, .for-page-nudge:active { background: rgba(124,77,255,0.15); border-color: rgba(124,77,255,0.42); }
+    body.dark .for-page-nudge { color: var(--neon); background: rgba(190,255,41,0.07); border-color: rgba(190,255,41,0.22); }
+    body.dark .for-page-nudge:hover, body.dark .for-page-nudge:active { background: rgba(190,255,41,0.14); border-color: rgba(190,255,41,0.42); }
 
     /* ═══ VIDEO SHARE PANEL ══════════════════════════════════════ */
     #vid-share-scrim { position: fixed; inset: 0; z-index: 490; background: rgba(10,5,30,.28); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; }
