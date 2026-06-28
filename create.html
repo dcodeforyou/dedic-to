@@ -20,8 +20,8 @@
       --r-pill:       50px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body { font-family: var(--font); background: #fff; color: var(--text-primary); overflow-x: hidden; }
+    html, body { height: 100%; overflow-x: hidden; }
+    body { font-family: var(--font); background: #fff; color: var(--text-primary); }
 
     /* ═══ CANVAS ══════════════════════════════════════════════ */
     #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -98,7 +98,7 @@
     .popup-state-b { display: none; }
     .popup-search-wrap { position: relative; }
     .popup-search-icon { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; display: flex; }
-    .popup-input { width: 100%; background: rgba(248,245,255,.90); border: 1.5px solid rgba(180,160,225,.45); border-radius: var(--r-pill); padding: 13px 18px 13px 44px; font-size: 15px; font-family: var(--font); color: var(--text-primary); outline: none; transition: border-color .2s; -webkit-appearance: none; }
+    .popup-input { width: 100%; background: rgba(248,245,255,.90); border: 1.5px solid rgba(180,160,225,.45); border-radius: var(--r-pill); padding: 13px 18px 13px 44px; font-size: 16px; font-family: var(--font); color: var(--text-primary); outline: none; transition: border-color .2s; -webkit-appearance: none; }
     .popup-input::-webkit-search-cancel-button { display: none; }
     .popup-input::placeholder { color: var(--text-muted); }
     .popup-input:focus { border-color: rgba(124,77,255,.52); }
@@ -1242,30 +1242,65 @@ function populateStep2() {
 // ════════════════════════════════════════════════════════════
 //  SEARCH
 // ════════════════════════════════════════════════════════════
-let debounceT = null;
+let debounceT = null, searchCtrl = null;
 $pInput.addEventListener('input', e => {
   const q = e.target.value.trim();
   clearTimeout(debounceT);
-  if (!q) { clearResults(); return; }
+  if (!q) { if (searchCtrl) { searchCtrl.abort(); searchCtrl = null; } clearResults(); return; }
   $pLoading.classList.add('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show');
   debounceT = setTimeout(() => fetchSongs(q), 340);
 });
 function clearResults() { $pLoading.classList.remove('show'); $pResults.innerHTML = ''; $pEmpty.classList.remove('show'); }
 async function fetchSongs(q) {
-  try {
-    // iTunes search works directly from localhost (non-null origin)
-    const data   = await itunesFetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=8`);
-    const tracks = (data.results || []).map(normalizeItunesTrack);
-    renderResults(tracks);
-  } catch {
-    // Fallback: iTunes via allorigins proxy
+  if (searchCtrl) searchCtrl.abort();
+  searchCtrl = new AbortController();
+  const sig = searchCtrl.signal;
+  const directUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=8`;
+
+  async function tFetch(url, opts = {}) {
+    if (sig.aborted) throw new DOMException('', 'AbortError');
+    const tc = new AbortController();
+    const tid = setTimeout(() => tc.abort(), 6000);
+    sig.addEventListener('abort', () => tc.abort(), { once: true });
     try {
-      const tracks = await itunesViaProxy(q, 8);
-      renderResults(tracks);
-    } catch {
-      $pLoading.classList.remove('show');
-      $pEmpty.textContent = 'search unavailable — try again'; $pEmpty.classList.add('show');
+      const r = await fetch(url, { ...opts, signal: tc.signal });
+      clearTimeout(tid);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } finally { clearTimeout(tid); }
+  }
+
+  function waitMs(ms) {
+    return new Promise((res, rej) => {
+      if (sig.aborted) return rej(new DOMException('', 'AbortError'));
+      const tid = setTimeout(res, ms);
+      sig.addEventListener('abort', () => { clearTimeout(tid); rej(new DOMException('', 'AbortError')); }, { once: true });
+    });
+  }
+
+  const strategies = [
+    () => tFetch(directUrl),
+    () => waitMs(600).then(() => tFetch(directUrl)),
+    () => tFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`, { credentials: 'omit' }),
+    () => tFetch(`https://corsproxy.io/?${encodeURIComponent(directUrl)}`),
+  ];
+
+  for (const strategy of strategies) {
+    if (sig.aborted) return;
+    try {
+      const data = await strategy();
+      if (sig.aborted) return;
+      renderResults((data.results || []).map(normalizeItunesTrack));
+      return;
+    } catch(e) {
+      if (sig.aborted || e.name === 'AbortError') return;
     }
+  }
+
+  if (!sig.aborted) {
+    $pLoading.classList.remove('show');
+    $pEmpty.textContent = 'search unavailable — try again';
+    $pEmpty.classList.add('show');
   }
 }
 function renderResults(tracks) {
