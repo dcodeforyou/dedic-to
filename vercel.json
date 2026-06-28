@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/search.js": { "maxDuration": 15 }
+    "api/search.js": { "maxDuration": 10 }
   },
   "rewrites": [
     { "source": "/for-send", "destination": "/for-send.html" },

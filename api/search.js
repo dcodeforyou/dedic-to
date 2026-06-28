@@ -7,12 +7,13 @@ module.exports = async function handler(req, res) {
   try {
     const upstream = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(8000),
     });
+    if (!upstream.ok) return res.status(502).json({ results: [] });
     const data = await upstream.json();
     res.setHeader('Cache-Control', 'no-store');
-    res.status(200).json(data);
+    return res.status(200).json(data);
   } catch (e) {
-    res.status(504).json({ results: [], error: e.message });
+    return res.status(504).json({ results: [] });
   }
 };
