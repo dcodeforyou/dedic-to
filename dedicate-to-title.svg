@@ -1,0 +1,26 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1528 334"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">Dedicate To</title>
+  <desc id="description">White Dedicate To wordmark inside a translucent blue selection panel with blue rails and circular handles.</desc>
+  <g>
+    <rect x="47" y="86" width="1434" height="248" fill="#78a0ff" fill-opacity="0.78" />
+    <path d="M47 47V334M1481 47V334" fill="none" stroke="#45a7ff" stroke-width="9" />
+    <circle cx="47" cy="47" r="47" fill="#45a7ff" />
+    <circle cx="1481" cy="47" r="47" fill="#45a7ff" />
+    <text
+      x="764"
+      y="256"
+      fill="#ffffff"
+      font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+      font-size="171"
+      font-weight="200"
+      text-anchor="middle"
+      textLength="894"
+      lengthAdjust="spacingAndGlyphs"
+    >Dedicate To</text>
+  </g>
+</svg>

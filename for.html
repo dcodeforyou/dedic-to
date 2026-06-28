@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>dedic.to — receive dedications</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    :root {
+      --purple:       #7C4DFF;
+      --purple-deep:  #5B2FE8;
+      --purple-light: #C4ACFF;
+      --neon:         #BEFF29;
+      --blue:         #5B8FE8;
+      --text-primary: #0D0A18;
+      --text-sec:     #6B6080;
+      --text-muted:   #A89EC0;
+      --font:         'Plus Jakarta Sans', sans-serif;
+      --r-pill:       50px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--font); background: #fff; color: var(--text-primary); overflow-x: hidden; }
+
+    /* ═══ CANVAS ══════════════════════════════════════════════ */
+    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ═══ VIEWS ════════════════════════════════════════════════ */
+    .view { display: none; position: relative; z-index: 1; min-height: 100vh; width: 100%; }
+    .view.active { display: flex; align-items: center; justify-content: center; }
+
+    /* ═══ LOADING VIEW ══════════════════════════════════════════ */
+    #view-loading {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .loading-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .ld {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--purple-light);
+      animation: dpulse 1.1s ease-in-out infinite;
+    }
+    .ld:nth-child(2) { animation-delay: .18s; }
+    .ld:nth-child(3) { animation-delay: .36s; }
+    @keyframes dpulse {
+      0%, 80%, 100% { opacity: .2; transform: scale(.65); }
+      40%           { opacity: 1;  transform: scale(1);   }
+    }
+
+    /* ═══ AUTH / SETUP CARD ════════════════════════════════════ */
+    .card-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 32px 20px 60px;
+    }
+    .create-nudge { font-size: 11px; color: var(--text-muted); text-decoration: none; margin-top: 18px; transition: color .15s; -webkit-tap-highlight-color: transparent; }
+    .create-nudge:hover { color: var(--purple); }
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      background: transparent;
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border-radius: 24px;
+      padding: 32px 28px;
+      animation: glow-cycle 4s linear infinite;
+    }
+
+    /* ═══ GLOW ANIMATION ════════════════════════════════════════ */
+    @keyframes glow-cycle {
+      0%   { box-shadow: 0 0 0 1.5px #7C4DFF, 0 0 16px 1px rgba(124,77,255,.50); }
+      17%  { box-shadow: 0 0 0 1.5px #5B8FE8, 0 0 16px 1px rgba(91,143,232,.50); }
+      33%  { box-shadow: 0 0 0 1.5px #BEFF29, 0 0 16px 1px rgba(190,255,41,.40); }
+      50%  { box-shadow: 0 0 0 1.5px #FF5BAD, 0 0 16px 1px rgba(255,91,173,.50); }
+      67%  { box-shadow: 0 0 0 1.5px #FF8C5A, 0 0 16px 1px rgba(255,140,90,.50); }
+      83%  { box-shadow: 0 0 0 1.5px #00C8A0, 0 0 16px 1px rgba(0,200,160,.50); }
+      100% { box-shadow: 0 0 0 1.5px #7C4DFF, 0 0 16px 1px rgba(124,77,255,.50); }
+    }
+
+    /* ═══ TITLE ═════════════════════════════════════════════════ */
+    .title-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    .title-img {
+      width: min(84vw, 390px);
+      max-width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 6px 22px rgba(78,120,204,.36));
+      margin-bottom: 12px;
+    }
+    .title-sub {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: .01em;
+    }
+
+    /* ═══ AUTH BUTTONS ══════════════════════════════════════════ */
+    .auth-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .auth-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: var(--r-pill);
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      border: none;
+      transition: opacity .18s, transform .12s, filter .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .auth-btn:hover  { filter: brightness(1.08); }
+    .auth-btn:active { transform: scale(.97); }
+    .auth-btn-google {
+      background: #fff;
+      color: #3C4043;
+      border: 1.5px solid rgba(180,160,225,.40);
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+    .auth-btn-apple {
+      background: #000;
+      color: #fff;
+    }
+    .auth-btn-apple:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .apple-soon-badge {
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      background: rgba(255,255,255,0.14);
+      border-radius: 6px;
+      padding: 2px 7px;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 4px 0;
+    }
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(180,160,225,.30);
+    }
+    .auth-divider-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .auth-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin-top: 20px;
+    }
+
+    /* ═══ SETUP FORM ════════════════════════════════════════════ */
+    .setup-heading {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -.03em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .setup-sub {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-bottom: 26px;
+      font-weight: 500;
+    }
+    .popup-input {
+      width: 100%;
+      background: rgba(248,245,255,.90);
+      border: 1.5px solid rgba(180,160,225,.45);
+      border-radius: var(--r-pill);
+      padding: 14px 20px;
+      font-size: 15px;
+      font-family: var(--font);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color .2s, background .2s;
+      -webkit-appearance: none;
+      margin-bottom: 16px;
+    }
+    .popup-input::placeholder { color: var(--text-muted); }
+    .popup-input:focus { border-color: rgba(124,77,255,.52); background: rgba(255,255,255,.95); }
+
+    .create-btn {
+      width: 100%;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: var(--r-pill);
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background .2s, transform .12s, opacity .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .create-btn:hover:not(:disabled)  { background: var(--purple-deep); }
+    .create-btn:active:not(:disabled) { transform: scale(.97); }
+    .create-btn:disabled { opacity: .32; cursor: default; }
+
+    /* Inline loading state for button */
+    .create-btn .btn-spinner {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .create-btn .btn-spinner .bld {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.80);
+      animation: dpulse 1.1s ease-in-out infinite;
+    }
+    .create-btn .btn-spinner .bld:nth-child(2) { animation-delay: .16s; }
+    .create-btn .btn-spinner .bld:nth-child(3) { animation-delay: .32s; }
+
+    /* ═══ EXISTS VIEW ════════════════════════════════════════════ */
+    #view-exists .exists-text {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    /* ═══ ERROR TOAST ════════════════════════════════════════════ */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(255,60,80,.90);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: var(--r-pill);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s, transform .22s;
+      z-index: 500;
+      font-family: var(--font);
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ═══ THEME TOGGLE BUTTON ═══════════════════════════════════ */
+    #theme-toggle {
+      position: fixed; top: 16px; right: 16px; z-index: 400;
+      width: 56px; height: 30px; background: none; border: none; padding: 0;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .tt-track {
+      width: 56px; height: 30px; border-radius: 15px;
+      background: rgba(210,195,245,.32); border: 1.5px solid rgba(180,160,225,.44);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      position: relative; transition: background .4s, border-color .4s, box-shadow .4s;
+    }
+    body.dark .tt-track {
+      background: rgba(13,10,26,.72); border-color: rgba(190,255,41,.38);
+      box-shadow: 0 0 14px rgba(190,255,41,.22), inset 0 0 10px rgba(124,77,255,.14);
+    }
+    .tt-thumb {
+      position: absolute; top: 4px; left: 4px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      display: flex; align-items: center; justify-content: center; color: #7C4DFF;
+      transition: transform .45s cubic-bezier(.34,1.56,.64,1), background .35s, box-shadow .35s, color .35s;
+    }
+    body.dark .tt-thumb {
+      transform: translateX(26px); background: #BEFF29; color: #0D0A18;
+      box-shadow: 0 0 12px rgba(190,255,41,.6), 0 2px 6px rgba(0,0,0,.2);
+    }
+    .tt-thumb svg { width: 11px; height: 11px; flex-shrink: 0; }
+    .tt-moon { display: none; } .tt-sun { display: block; }
+    body.dark .tt-moon { display: block; } body.dark .tt-sun { display: none; }
+    @keyframes tt-click { 0%,100%{transform:scale(1)} 45%{transform:scale(.92)} }
+    #theme-toggle:active .tt-track { animation: tt-click .18s ease; }
+
+    /* ═══ DARK THEME ═════════════════════════════════════════════ */
+    body.dark {
+      background: #080612;
+      color: #EDE8FF;
+      --text-primary: #EDE8FF;
+      --text-sec:     #B0A0D8;
+      --text-muted:   #6B5F8C;
+    }
+
+    body.dark .popup-input {
+      background: rgba(196,172,255,.09);
+      border-color: rgba(196,172,255,.20);
+      color: #EDE8FF;
+    }
+    body.dark .popup-input::placeholder { color: #6B5F8C; }
+    body.dark .popup-input:focus {
+      border-color: rgba(124,77,255,.55);
+      background: rgba(196,172,255,.13);
+    }
+    body.dark .auth-btn-google {
+      background: rgba(255,255,255,.10);
+      color: #EDE8FF;
+      border-color: rgba(196,172,255,.22);
+      box-shadow: none;
+    }
+    body.dark .setup-heading { color: #EDE8FF; }
+    body.dark .setup-sub { color: #B0A0D8; }
+    body.dark .auth-note { color: #6B5F8C; }
+    body.dark .title-sub { color: #6B5F8C; }
+    body.dark .auth-divider::before,
+    body.dark .auth-divider::after { background: rgba(196,172,255,.16); }
+    body.dark .auth-divider-text { color: #6B5F8C; }
+    body.dark .title-img { filter: drop-shadow(0 6px 22px rgba(124,77,255,.40)) brightness(1.05); }
+
+    /* ═══ TEST MODE BUTTON ══════════════════════════════════════ */
+    .test-mode-btn {
+      width: 100%; background: none; border: none;
+      font-size: 12px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; font-family: var(--font); padding: 8px 0 2px;
+      text-decoration: underline; text-underline-offset: 3px;
+      transition: color .15s; -webkit-tap-highlight-color: transparent;
+      margin-top: 6px;
+    }
+    .test-mode-btn:hover { color: var(--text-sec); }
+    body.dark .test-mode-btn { color: #6B5F8C; }
+    body.dark .test-mode-btn:hover { color: #B0A0D8; }
+
+    /* ═══ DESKTOP ════════════════════════════════════════════════ */
+    @media (min-width: 640px) {
+      .card-wrap { padding: 60px 40px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- ── THEME TOGGLE ───────────────────────────────────── -->
+<button id="theme-toggle" aria-label="Toggle theme">
+  <div class="tt-track">
+    <div class="tt-thumb">
+      <svg class="tt-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
+    </div>
+  </div>
+</button>
+
+<!-- ── ERROR TOAST ────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: LOADING
+═══════════════════════════════════════════════════════ -->
+<div class="view active" id="view-loading">
+  <div class="loading-dots">
+    <div class="ld"></div>
+    <div class="ld"></div>
+    <div class="ld"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: AUTH (not signed in)
+═══════════════════════════════════════════════════════ -->
+<div class="view" id="view-auth">
+  <div class="card-wrap">
+    <div class="auth-card">
+      <!-- Title -->
+      <div class="title-wrap">
+        <img src="dedic-me-title.svg" class="title-img" alt="dedicate me">
+        <p class="title-sub">get your personal dedications link</p>
+      </div>
+
+      <!-- Auth buttons -->
+      <div class="auth-buttons">
+        <button class="auth-btn auth-btn-google" id="btn-google">
+          <!-- Google icon -->
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+            <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          continue with Google
+        </button>
+
+        <div class="auth-divider" id="apple-divider">
+          <span class="auth-divider-text">or</span>
+        </div>
+
+        <button class="auth-btn auth-btn-apple" id="btn-apple" disabled>
+          <!-- Apple icon -->
+          <svg width="17" height="20" viewBox="0 0 17 20" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.769 10.645c-.02-2.11 1.728-3.136 1.808-3.185-0.987-1.44-2.52-1.636-3.063-1.657-1.303-.133-2.553.775-3.216.775-.663 0-1.683-.757-2.77-.736C4.928 5.863 3.393 6.86 2.565 8.39.886 11.47 2.154 16.063 3.77 18.565c.804 1.228 1.766 2.605 3.027 2.555 1.22-.05 1.68-.784 3.154-.784 1.475 0 1.893.784 3.18.757 1.31-.023 2.139-1.247 2.936-2.48.934-1.419 1.318-2.804 1.338-2.874-.029-.013-2.557-.98-2.58-3.894zM11.643 3.93C12.295 3.135 12.74 2.03 12.612.9 11.637.943 10.467 1.556 9.79 2.334c-.608.695-1.146 1.83-1.003 2.908.99.073 2.006-.504 2.856-1.312z"/>
+          </svg>
+          continue with Apple <span class="apple-soon-badge">soon</span>
+        </button>
+      </div>
+
+      <p class="auth-note">signing in lets you receive anonymous song dedications</p>
+
+      <div class="auth-divider" style="margin-top:14px">
+        <span class="auth-divider-text">or</span>
+      </div>
+      <button class="test-mode-btn" id="btn-test">continue without login (test mode)</button>
+    </div>
+    <a href="create.html" class="create-nudge">dedicate a song to someone →</a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: SETUP (signed in, no page yet)
+═══════════════════════════════════════════════════════ -->
+<div class="view" id="view-setup">
+  <div class="card-wrap">
+    <div class="auth-card">
+      <h1 class="setup-heading">what should people call you?</h1>
+      <p class="setup-sub">this name appears on your dedications page</p>
+
+      <input
+        type="text"
+        class="popup-input"
+        id="display-name-input"
+        placeholder="your name..."
+        maxlength="30"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+      >
+
+      <button class="create-btn" id="create-btn" disabled>
+        <span id="create-btn-label">create my page →</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     VIEW: EXISTS (signed in, page found — redirecting)
+═══════════════════════════════════════════════════════ -->
+<div class="view" id="view-exists">
+  <div class="loading-dots" style="flex-direction:column;gap:14px;align-items:center">
+    <div style="display:flex;gap:8px">
+      <div class="ld"></div>
+      <div class="ld"></div>
+      <div class="ld"></div>
+    </div>
+    <p class="exists-text">redirecting...</p>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SUPABASE
+══════════════════════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://lwjolnfoojblpnzeuxzl.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3am9sbmZvb2pibHBuemV1eHpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODk5MTAsImV4cCI6MjA5ODE2NTkxMH0.RNQr9PFWnUksZ-Xn3REIAo12xMODaHXZfYfhMFiVTog';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ═══════════════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════════════ */
+(function initTheme() {
+  const stored = localStorage.getItem('dedic-theme');
+  const isDark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (isDark) document.body.classList.add('dark');
+})();
+
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const isDark = document.body.classList.toggle('dark');
+  try { localStorage.setItem('dedic-theme', isDark ? 'dark' : 'light'); } catch {}
+});
+
+/* ═══════════════════════════════════════════════════════════
+   VIEWS
+══════════════════════════════════════════════════════════ */
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH BUTTONS
+══════════════════════════════════════════════════════════ */
+function supabaseReady() { return !SUPABASE_URL.includes('YOUR_PROJECT'); }
+
+document.getElementById('btn-google').addEventListener('click', () => {
+  if (!supabaseReady()) { showToast('supabase not configured yet — use test mode below'); return; }
+  if (location.protocol === 'file:') { showToast('open via http://localhost to use OAuth'); return; }
+  sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+});
+
+document.getElementById('btn-apple').addEventListener('click', () => {
+  showToast('Apple Sign In coming soon');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   TEST MODE
+══════════════════════════════════════════════════════════ */
+function isTestMode() { return !!localStorage.getItem('dedic-test-session'); }
+let testModeActive = false;
+
+document.getElementById('btn-test').addEventListener('click', () => {
+  if (isTestMode()) { window.location.href = 'for-inbox.html'; return; }
+  testModeActive = true;
+  showView('view-setup');
+  setTimeout(() => document.getElementById('display-name-input').focus(), 80);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP FORM
+══════════════════════════════════════════════════════════ */
+const nameInput = document.getElementById('display-name-input');
+const createBtn = document.getElementById('create-btn');
+
+nameInput.addEventListener('input', () => {
+  createBtn.disabled = nameInput.value.trim().length === 0;
+});
+
+function genHash() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+createBtn.addEventListener('click', async () => {
+  const displayName = nameInput.value.trim();
+  if (!displayName) return;
+
+  // Show loading state
+  createBtn.disabled = true;
+  document.getElementById('create-btn-label').innerHTML =
+    '<span class="btn-spinner"><span class="bld"></span><span class="bld"></span><span class="bld"></span></span>';
+
+  // ── TEST MODE: save to localStorage, skip Supabase ──────────
+  if (testModeActive) {
+    const hash = genHash();
+    localStorage.setItem('dedic-test-session', JSON.stringify({
+      display_name: displayName,
+      share_hash:   hash,
+      is_test:      true,
+    }));
+    localStorage.removeItem('dedic-test-dedications');
+    window.location.href = 'for-inbox.html';
+    return;
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showToast('session expired — please sign in again'); showView('view-auth'); return; }
+
+    const userId = session.user.id;
+    const shareHash = genHash();
+
+    const { error } = await sb.from('receiver_pages').insert({
+      user_id:      userId,
+      display_name: displayName,
+      share_hash:   shareHash
+    });
+
+    if (error) {
+      // Unique constraint hit — hash collision; try once more
+      if (error.code === '23505') {
+        const { error: err2 } = await sb.from('receiver_pages').insert({
+          user_id:      userId,
+          display_name: displayName,
+          share_hash:   genHash()
+        });
+        if (err2) throw err2;
+      } else {
+        throw error;
+      }
+    }
+
+    window.location.href = 'for-inbox.html';
+  } catch (err) {
+    console.error(err);
+    showToast('something went wrong — please try again');
+    createBtn.disabled = false;
+    document.getElementById('create-btn-label').textContent = 'create my page →';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH FLOW
+══════════════════════════════════════════════════════════ */
+async function initAuthFlow() {
+  showView('view-loading');
+
+  // ── TEST MODE: already have a test session, go straight to inbox ──
+  if (isTestMode()) {
+    showView('view-exists');
+    setTimeout(() => { window.location.href = 'for-inbox.html'; }, 400);
+    return;
+  }
+
+  // Handle OAuth redirect (hash-based token)
+  await sb.auth.getSession(); // let the SDK parse the URL hash
+
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (!session) {
+    showView('view-auth');
+    return;
+  }
+
+  // Signed in — check for existing page
+  const { data: rows, error } = await sb
+    .from('receiver_pages')
+    .select('id')
+    .eq('user_id', session.user.id)
+    .limit(1);
+
+  if (error) {
+    console.error(error);
+    showToast('could not load your profile — please refresh');
+    showView('view-auth');
+    return;
+  }
+
+  if (rows && rows.length > 0) {
+    // Page already exists
+    showView('view-exists');
+    setTimeout(() => { window.location.href = 'for-inbox.html'; }, 600);
+  } else {
+    showView('view-setup');
+    nameInput.focus();
+  }
+}
+
+initAuthFlow();
+
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND CANVAS
+══════════════════════════════════════════════════════════ */
+const bgCanvas = document.getElementById('bg');
+const bgCtx    = bgCanvas.getContext('2d');
+const ωM  = (Math.PI * 2) / 30000;
+const ωM2 = ωM * 0.77;
+const ωA  = ωM * 0.625;
+const ωA2 = ωM * 0.484;
+
+function drawBg(now) {
+  const dark = document.body.classList.contains('dark');
+  bgCtx.fillStyle = dark ? '#080612' : '#FFFFFF';
+  bgCtx.fillRect(0, 0, BW, BH);
+  const mx = BW*(0.50+0.44*Math.sin(ωM*now)), my = BH*(0.50+0.38*Math.sin(ωM2*now+1.2));
+  const mR = Math.max(BW,BH)*0.60;
+  const gM = bgCtx.createRadialGradient(mx,my,0,mx,my,mR);
+  if (dark) { gM.addColorStop(0,'rgba(124,77,255,0.28)'); gM.addColorStop(0.45,'rgba(124,77,255,0.08)'); gM.addColorStop(1,'rgba(124,77,255,0)'); }
+  else { gM.addColorStop(0,'rgba(182,140,255,0.56)'); gM.addColorStop(0.40,'rgba(182,140,255,0.18)'); gM.addColorStop(1,'rgba(182,140,255,0)'); }
+  bgCtx.fillStyle = gM; bgCtx.fillRect(0,0,BW,BH);
+  const ax = BW*(0.50+0.40*Math.sin(ωA*now+Math.PI)), ay = BH*(0.50+0.34*Math.sin(ωA2*now+2.4));
+  const aR = Math.max(BW,BH)*0.44;
+  const gA = bgCtx.createRadialGradient(ax,ay,0,ax,ay,aR);
+  if (dark) { gA.addColorStop(0,'rgba(91,143,232,0.18)'); gA.addColorStop(0.45,'rgba(91,143,232,0.05)'); gA.addColorStop(1,'rgba(91,143,232,0)'); }
+  else { gA.addColorStop(0,'rgba(140,170,255,0.34)'); gA.addColorStop(0.45,'rgba(140,170,255,0.10)'); gA.addColorStop(1,'rgba(140,170,255,0)'); }
+  bgCtx.fillStyle = gA; bgCtx.fillRect(0,0,BW,BH);
+}
+
+function drawGrid() {
+  bgCtx.save(); bgCtx.strokeStyle='rgba(155,125,210,.050)'; bgCtx.lineWidth=1;
+  for (let x=.5;x<BW;x+=CELL){bgCtx.beginPath();bgCtx.moveTo(x,0);bgCtx.lineTo(x,BH);bgCtx.stroke();}
+  for (let y=.5;y<BH;y+=CELL){bgCtx.beginPath();bgCtx.moveTo(0,y);bgCtx.lineTo(BW,y);bgCtx.stroke();}
+  bgCtx.restore();
+}
+
+const PX=28,GAP=3,CELL=PX+GAP;
+const PAL=[[124,77,255,.20],[91,143,232,.16],[196,172,255,.18],[68,136,255,.13],[190,255,41,.09],[255,91,173,.08],[168,196,255,.10],[255,140,90,.04],[80,200,200,.02]];
+const CW_acc=[]; let _palSum=0;
+for(const c of PAL){_palSum+=c[3];CW_acc.push(_palSum);}
+function pickCol(){const r=Math.random()*_palSum;for(let i=0;i<CW_acc.length;i++)if(r<=CW_acc[i])return PAL[i];return PAL[0];}
+let pixels=[],BW=0,BH=0;
+
+function bgDens(col,row,cols,rows){
+  const nx=col/Math.max(cols-1,1),ny=row/Math.max(rows-1,1);
+  const rx=.42*(BH/BW),ry=.40;
+  const dx=(nx-.50)/rx,dy=(ny-.47)/ry;
+  const ring=Math.exp(-(Math.abs(Math.sqrt(dx*dx+dy*dy)-1)**2)/(2*.09*.09));
+  const mc=Math.min(Math.hypot(nx,ny),Math.hypot(1-nx,ny),Math.hypot(nx,1-ny),Math.hypot(1-nx,1-ny));
+  return Math.max(ring*.88,Math.max(0,1-mc/.26)*.94);
+}
+
+function buildPx(){
+  BW=bgCanvas.width=window.innerWidth; BH=bgCanvas.height=window.innerHeight;
+  const cols=Math.ceil(BW/CELL)+1,rows=Math.ceil(BH/CELL)+1; pixels=[];
+  const now=performance.now();
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const d=bgDens(c,r,cols,rows);
+    if(d<.01||Math.random()>d*.80)continue;
+    const col=pickCol();
+    pixels.push({ox:c*CELL,oy:r*CELL,x:c*CELL,y:r*CELL,vx:0,vy:0,r:col[0],g:col[1],b:col[2],minOp:.04,maxOp:Math.min(.28+d*.54,.88),period:552+Math.random()*2010,phase:Math.random()*Math.PI*2,t0:now-Math.random()*(552+Math.random()*2010)});
+  }
+}
+
+let curX=-9999,curY=-9999;
+window.addEventListener('mousemove',e=>{curX=e.clientX;curY=e.clientY;});
+window.addEventListener('touchmove',e=>{const t=e.touches[0];curX=t.clientX;curY=t.clientY;},{passive:true});
+window.addEventListener('touchend',()=>{curX=-9999;curY=-9999;});
+const SPRING_K=0.06,DAMPING=0.80,REP_R=110,REP_F=7;
+function applySpring(item){
+  const ddx=curX-item.x,ddy=curY-item.y;
+  const dist=Math.sqrt(ddx*ddx+ddy*ddy);
+  let fx=0,fy=0;
+  if(dist<REP_R&&dist>0){const str=(1-dist/REP_R)*REP_F;fx=-(ddx/dist)*str;fy=-(ddy/dist)*str;}
+  item.vx=(item.vx+(item.ox-item.x)*SPRING_K+fx)*DAMPING;
+  item.vy=(item.vy+(item.oy-item.y)*SPRING_K+fy)*DAMPING;
+  item.x+=item.vx; item.y+=item.vy;
+}
+function bgTick(now){
+  bgCtx.clearRect(0,0,BW,BH); drawBg(now); drawGrid();
+  for(const px of pixels){
+    applySpring(px);
+    const t=((now-px.t0)%px.period)/px.period;
+    const op=px.minOp+((Math.sin(t*Math.PI*2+px.phase)+1)*.5)*(px.maxOp-px.minOp);
+    bgCtx.fillStyle=`rgba(${px.r},${px.g},${px.b},${op.toFixed(3)})`;
+    bgCtx.fillRect(px.x,px.y,PX,PX);
+  }
+  requestAnimationFrame(bgTick);
+}
+let resizeTimer;
+window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>buildPx(),140);});
+buildPx(); requestAnimationFrame(bgTick);
+</script>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dedic.to — Color Palette</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Inter', sans-serif;
+    background: #F7F4FF;
+    color: #0D0A18;
+    padding: 40px 24px;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .top-label {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #A89EC0; margin-bottom: 6px;
+  }
+  h1 {
+    font-size: 32px; font-weight: 700; color: #0D0A18;
+    letter-spacing: -0.5px; margin-bottom: 6px;
+  }
+  .subtitle { font-size: 15px; color: #6B6080; margin-bottom: 48px; line-height: 1.5; }
+
+  .section-title {
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #A89EC0; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #E4DEFF; }
+
+  .section { margin-bottom: 44px; }
+
+  /* Inspiration row */
+  .inspo-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  .inspo-swatch {
+    flex: 1; height: 72px; border-radius: 12px;
+    display: flex; flex-direction: column;
+    align-items: flex-start; justify-content: flex-end;
+    padding: 8px 10px;
+    font-size: 11px; font-weight: 500;
+  }
+  .inspo-swatch .hex { font-size: 10px; opacity: 0.75; margin-top: 2px; font-family: monospace; }
+
+  /* Main palette grid */
+  .palette-group { margin-bottom: 28px; }
+  .group-label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: #A89EC0; margin-bottom: 10px;
+  }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch {
+    border-radius: 14px; padding: 14px 12px 10px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    min-width: 100px; flex: 1;
+  }
+  .swatch .name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .swatch .hex {
+    font-size: 11px; font-family: 'Courier New', monospace;
+    opacity: 0.7; margin-top: 3px;
+  }
+  .swatch .use { font-size: 10px; opacity: 0.6; margin-top: 2px; line-height: 1.3; }
+  .swatch-tall { min-height: 90px; }
+  .swatch-short { min-height: 64px; }
+
+  /* Dark section */
+  .dark-section {
+    background: #0D0A1A; border-radius: 20px; padding: 24px; margin-bottom: 28px;
+  }
+  .dark-section .group-label { color: #7A6FA8; }
+  .dark-swatch {
+    border-radius: 14px; padding: 14px 12px 10px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    min-width: 100px; flex: 1; min-height: 80px;
+  }
+  .dark-swatch .name { font-size: 12px; font-weight: 600; }
+  .dark-swatch .hex { font-size: 11px; font-family: monospace; opacity: 0.65; margin-top: 3px; }
+  .dark-swatch .use { font-size: 10px; opacity: 0.55; margin-top: 2px; }
+
+  /* Typography section */
+  .type-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .type-card {
+    flex: 1; min-width: 160px; background: #fff; border-radius: 14px;
+    padding: 16px; border: 1px solid #E4DEFF;
+  }
+  .type-card .type-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #A89EC0; margin-bottom: 8px; }
+  .type-card .type-name { font-size: 15px; font-weight: 600; color: #0D0A18; margin-bottom: 3px; }
+  .type-card .type-use { font-size: 11px; color: #6B6080; line-height: 1.5; }
+
+  /* Radius */
+  .radius-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .radius-card {
+    flex: 1; min-width: 100px; background: #fff; border-radius: 14px;
+    padding: 16px; border: 1px solid #E4DEFF; text-align: center;
+  }
+  .radius-demo { background: #EDE6FF; margin: 0 auto 8px; width: 48px; height: 48px; }
+  .radius-label { font-size: 12px; font-weight: 600; color: #0D0A18; }
+  .radius-val { font-size: 11px; color: #A89EC0; font-family: monospace; margin-top: 2px; }
+
+  /* CSS tokens */
+  .tokens-box {
+    background: #1C1535; border-radius: 16px; padding: 24px;
+    font-family: 'Courier New', monospace; font-size: 12px; color: #C4ACFF;
+    line-height: 1.8; overflow-x: auto;
+  }
+  .token-comment { color: #4A3A70; }
+  .token-var { color: #F5F0FF; }
+  .token-val { color: #BEFF29; }
+
+  /* Live preview */
+  .preview-card {
+    background: #fff; border-radius: 20px; padding: 20px;
+    border: 1px solid #E4DEFF; margin-bottom: 12px;
+  }
+  .preview-search {
+    background: #F7F4FF; border: 1.5px solid #E4DEFF; border-radius: 50px;
+    padding: 12px 18px; font-size: 14px; color: #A89EC0;
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .preview-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip-active {
+    background: #BEFF29; color: #0D0A18; border-radius: 50px;
+    padding: 6px 14px; font-size: 12px; font-weight: 600;
+  }
+  .chip-inactive {
+    background: #EDE6FF; color: #7C4DFF; border-radius: 50px;
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+  }
+  .preview-btn {
+    background: #7C4DFF; color: #fff; border-radius: 50px;
+    padding: 12px 24px; font-size: 14px; font-weight: 600;
+    border: none; width: 100%; cursor: pointer;
+  }
+  .preview-output {
+    background: #0D0A1A; border-radius: 20px; padding: 20px; text-align: center;
+  }
+  .output-art {
+    width: 72px; height: 72px; background: #1C1535; border-radius: 10px;
+    margin: 0 auto 12px; border: 1px solid #2A2040;
+  }
+  .output-title { font-size: 18px; font-weight: 700; color: #F5F0FF; margin-bottom: 3px; }
+  .output-artist { font-size: 13px; color: #7A6FA8; margin-bottom: 12px; }
+  .output-pill {
+    display: inline-block; background: #BEFF29; color: #0D0A18;
+    border-radius: 50px; padding: 5px 16px; font-size: 12px; font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .output-msg { font-size: 13px; color: #7A6FA8; font-style: italic; line-height: 1.6; }
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .badge-new {
+    display: inline-block; background: #BEFF29; color: #0D0A18;
+    font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    letter-spacing: 0.05em; vertical-align: middle; margin-left: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="top-label">dedic.to — Design System</div>
+  <h1>Color Palette</h1>
+  <p class="subtitle">
+    Inspired by Vogue/Archrival Gen Z editorial + 2024–2025 trends.<br>
+    Brat green × Digital lavender × Y2K periwinkle.
+  </p>
+
+  <!-- INSPIRATION -->
+  <div class="section">
+    <div class="section-title">extracted from vogue/archrival site</div>
+    <div class="inspo-row">
+      <div class="inspo-swatch" style="background:#FFFFFF; border: 1px solid #E4DEFF; color:#0D0A18">
+        <span>White base</span><span class="hex">#FFFFFF</span>
+      </div>
+      <div class="inspo-swatch" style="background:#C4A8E8; color:#0D0A18">
+        <span>Lavender blob</span><span class="hex">#C4A8E8</span>
+      </div>
+      <div class="inspo-swatch" style="background:#A8C5E8; color:#0D0A18">
+        <span>Y2K blue check</span><span class="hex">#A8C5E8</span>
+      </div>
+      <div class="inspo-swatch" style="background:#A8F030; color:#0D0A18">
+        <span>Neon pop</span><span class="hex">#A8F030</span>
+      </div>
+      <div class="inspo-swatch" style="background:#0A0A0A; color:#fff">
+        <span>Bold type</span><span class="hex">#0A0A0A</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PALETTE -->
+  <div class="section">
+    <div class="section-title">dedic.to palette — light pages (quick page)</div>
+
+    <div class="palette-group">
+      <div class="group-label">Backgrounds</div>
+      <div class="swatches">
+        <div class="swatch swatch-tall" style="background:#F7F4FF; border: 1px solid #E4DEFF; color:#0D0A18">
+          <span class="name">Page BG</span>
+          <span class="hex">#F7F4FF</span>
+          <span class="use">Main page background</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#FFFFFF; border: 1px solid #E4DEFF; color:#0D0A18">
+          <span class="name">Surface</span>
+          <span class="hex">#FFFFFF</span>
+          <span class="use">Cards, inputs</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#EDE6FF; color:#0D0A18">
+          <span class="name">Tinted surface</span>
+          <span class="hex">#EDE6FF</span>
+          <span class="use">Hover, selected state</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#E4DEFF; color:#0D0A18">
+          <span class="name">Border</span>
+          <span class="hex">#E4DEFF</span>
+          <span class="use">All borders, dividers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <div class="group-label">Brand — Purple <span class="badge-new">Gen Z core</span></div>
+      <div class="swatches">
+        <div class="swatch swatch-tall" style="background:#C4ACFF; color:#0D0A18">
+          <span class="name">Lavender</span>
+          <span class="hex">#C4ACFF</span>
+          <span class="use">Soft accents, blobs</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#7C4DFF; color:#fff">
+          <span class="name">Purple</span>
+          <span class="hex">#7C4DFF</span>
+          <span class="use">Buttons, links, icons</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#5B2FE8; color:#fff">
+          <span class="name">Purple deep</span>
+          <span class="hex">#5B2FE8</span>
+          <span class="use">Hover state, pressed</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#4A1EC0; color:#fff">
+          <span class="name">Purple darkest</span>
+          <span class="hex">#4A1EC0</span>
+          <span class="use">Text on tinted bg</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <div class="group-label">Accent — Neon Green <span class="badge-new">Brat era ✦</span></div>
+      <div class="swatches">
+        <div class="swatch swatch-tall" style="background:#ECFFA0; color:#0D0A18">
+          <span class="name">Neon pale</span>
+          <span class="hex">#ECFFA0</span>
+          <span class="use">Light tint, badges</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#BEFF29; color:#0D0A18">
+          <span class="name">Neon green</span>
+          <span class="hex">#BEFF29</span>
+          <span class="use">Primary accent, CTAs</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#8ACE00; color:#0D0A18">
+          <span class="name">Brat green</span>
+          <span class="hex">#8ACE00</span>
+          <span class="use">Hover on neon</span>
+        </div>
+        <div class="swatch swatch-tall" style="background:#5A8A00; color:#fff">
+          <span class="name">Green dark</span>
+          <span class="hex">#5A8A00</span>
+          <span class="use">Text on neon bg</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <div class="group-label">Secondary — Periwinkle <span class="badge-new">Y2K</span></div>
+      <div class="swatches">
+        <div class="swatch swatch-short" style="background:#D4E8FF; color:#0D0A18">
+          <span class="name">Sky</span>
+          <span class="hex">#D4E8FF</span>
+          <span class="use">Backgrounds</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#A8C4FF; color:#0D0A18">
+          <span class="name">Periwinkle</span>
+          <span class="hex">#A8C4FF</span>
+          <span class="use">Secondary chips</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#5B8FE8; color:#fff">
+          <span class="name">Blue mid</span>
+          <span class="hex">#5B8FE8</span>
+          <span class="use">Info, links alt</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#FF6B9D; color:#fff">
+          <span class="name">Hot pink</span>
+          <span class="hex">#FF6B9D</span>
+          <span class="use">Errors, love/heart</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="palette-group">
+      <div class="group-label">Typography</div>
+      <div class="swatches">
+        <div class="swatch swatch-short" style="background:#0D0A18; color:#fff">
+          <span class="name">Text primary</span>
+          <span class="hex">#0D0A18</span>
+          <span class="use">Headlines, body</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#6B6080; color:#fff">
+          <span class="name">Text secondary</span>
+          <span class="hex">#6B6080</span>
+          <span class="use">Subtitles, captions</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#A89EC0; color:#0D0A18">
+          <span class="name">Text muted</span>
+          <span class="hex">#A89EC0</span>
+          <span class="use">Placeholders, hints</span>
+        </div>
+        <div class="swatch swatch-short" style="background:#E4DEFF; color:#0D0A18">
+          <span class="name">Border</span>
+          <span class="hex">#E4DEFF</span>
+          <span class="use">All borders</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DARK PALETTE -->
+  <div class="section">
+    <div class="section-title">output card palette — dark (dedicated page)</div>
+    <div class="dark-section">
+      <div class="group-label">Dark surfaces</div>
+      <div class="swatches" style="margin-bottom:16px">
+        <div class="dark-swatch" style="background:#0D0A1A; border: 1px solid #2A2040; color:#F5F0FF">
+          <span class="name">Card BG</span>
+          <span class="hex">#0D0A1A</span>
+          <span class="use">Page background</span>
+        </div>
+        <div class="dark-swatch" style="background:#1C1535; border: 1px solid #2A2040; color:#F5F0FF">
+          <span class="name">Card surface</span>
+          <span class="hex">#1C1535</span>
+          <span class="use">Elevated cards</span>
+        </div>
+        <div class="dark-swatch" style="background:#2A2048; border: 1px solid #3A3060; color:#F5F0FF">
+          <span class="name">Border dark</span>
+          <span class="hex">#2A2048</span>
+          <span class="use">Dividers on dark</span>
+        </div>
+        <div class="dark-swatch" style="background:#F5F0FF; color:#0D0A18">
+          <span class="name">Text on dark</span>
+          <span class="hex">#F5F0FF</span>
+          <span class="use">Primary text</span>
+        </div>
+        <div class="dark-swatch" style="background:#7A6FA8; color:#F5F0FF">
+          <span class="name">Muted on dark</span>
+          <span class="hex">#7A6FA8</span>
+          <span class="use">Secondary text</span>
+        </div>
+        <div class="dark-swatch" style="background:#BEFF29; color:#0D0A18">
+          <span class="name">Neon on dark</span>
+          <span class="hex">#BEFF29</span>
+          <span class="use">Category pill, CTA</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-title">typography</div>
+    <div class="type-row">
+      <div class="type-card">
+        <div class="type-label">Primary font</div>
+        <div class="type-name">Plus Jakarta Sans</div>
+        <div class="type-use">Headlines, body, UI. Rounded feel, very Gen Z. Free on Google Fonts.</div>
+      </div>
+      <div class="type-card">
+        <div class="type-label">Weights</div>
+        <div class="type-name">400 · 500 · 700 · 800</div>
+        <div class="type-use">800 for big headlines. 700 for buttons. 500 for labels. 400 for body.</div>
+      </div>
+      <div class="type-card">
+        <div class="type-label">Scale</div>
+        <div class="type-name">13 · 15 · 18 · 24 · 32 · 48px</div>
+        <div class="type-use">Keep it tight. NGL uses bold, large type with very little body text.</div>
+      </div>
+      <div class="type-card">
+        <div class="type-label">Style</div>
+        <div class="type-name">Lowercase everything</div>
+        <div class="type-use">"dedicate a song" not "Dedicate A Song". Lowercase = authentic, Gen Z native.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BORDER RADIUS -->
+  <div class="section">
+    <div class="section-title">border radius — everything is round</div>
+    <div class="radius-row">
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:8px"></div>
+        <div class="radius-label">Small</div>
+        <div class="radius-val">8px — inputs, tags</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:14px"></div>
+        <div class="radius-label">Medium</div>
+        <div class="radius-val">14px — cards</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:20px"></div>
+        <div class="radius-label">Large</div>
+        <div class="radius-val">20px — panels</div>
+      </div>
+      <div class="radius-card">
+        <div class="radius-demo" style="border-radius:50px"></div>
+        <div class="radius-label">Pill</div>
+        <div class="radius-val">50px — buttons, chips</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE PREVIEW -->
+  <div class="section">
+    <div class="section-title">live preview</div>
+    <div class="preview-grid">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#A89EC0;margin-bottom:8px">Quick page (light)</div>
+        <div class="preview-card">
+          <div class="preview-search">
+            <svg width="14" height="14" fill="none" stroke="#A89EC0" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            search a song...
+          </div>
+          <div style="background:#EDE6FF;border-radius:10px;padding:10px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;background:#C4ACFF;border-radius:6px;flex-shrink:0"></div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#0D0A18">Skinny</div>
+              <div style="font-size:11px;color:#6B6080">Tyler, the Creator</div>
+            </div>
+          </div>
+          <div class="preview-chips">
+            <span class="chip-active">my ex</span>
+            <span class="chip-inactive">my person</span>
+            <span class="chip-inactive">can't name</span>
+            <span class="chip-inactive">future me</span>
+          </div>
+          <div style="background:#F7F4FF;border:1.5px solid #E4DEFF;border-radius:10px;padding:10px;font-size:12px;color:#A89EC0;margin-bottom:12px;font-style:italic">optional message...</div>
+          <button class="preview-btn">generate card →</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#A89EC0;margin-bottom:8px">Output page (dark)</div>
+        <div class="preview-output">
+          <div class="output-art"></div>
+          <div class="output-title">Skinny</div>
+          <div class="output-artist">Tyler, the Creator</div>
+          <div class="output-pill">dedicated to: my ex</div>
+          <div class="output-msg">"I hope you heard this<br>the same way I did."</div>
+          <div style="margin-top:14px;background:#1C1535;border-radius:10px;padding:10px;display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:50%;background:#1DB954;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+              <svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+            <div style="flex:1;height:2px;background:#2A2048;border-radius:2px"><div style="width:35%;height:100%;background:#BEFF29;border-radius:2px"></div></div>
+            <span style="font-size:10px;color:#7A6FA8">0:34</span>
+          </div>
+          <div style="margin-top:10px;background:#BEFF29;border-radius:50px;padding:10px;font-size:13px;font-weight:700;color:#0D0A18;text-align:center">make yours →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSS TOKENS -->
+  <div class="section">
+    <div class="section-title">css variables — copy paste to claude code</div>
+    <div class="tokens-box">
+<span class="token-comment">/* dedic.to — Design Tokens */</span>
+<span class="token-comment">/* Copy this into your globals.css */</span>
+
+:root {
+  <span class="token-comment">/* Backgrounds */</span>
+  <span class="token-var">--bg-page</span>:         <span class="token-val">#F7F4FF</span>;
+  <span class="token-var">--bg-surface</span>:      <span class="token-val">#FFFFFF</span>;
+  <span class="token-var">--bg-tinted</span>:       <span class="token-val">#EDE6FF</span>;
+
+  <span class="token-comment">/* Brand Purple */</span>
+  <span class="token-var">--purple-light</span>:    <span class="token-val">#C4ACFF</span>;
+  <span class="token-var">--purple</span>:          <span class="token-val">#7C4DFF</span>;
+  <span class="token-var">--purple-deep</span>:     <span class="token-val">#5B2FE8</span>;
+
+  <span class="token-comment">/* Neon Accent (Brat) */</span>
+  <span class="token-var">--neon</span>:            <span class="token-val">#BEFF29</span>;
+  <span class="token-var">--neon-dark</span>:       <span class="token-val">#8ACE00</span>;
+  <span class="token-var">--neon-text</span>:       <span class="token-val">#5A8A00</span>;
+
+  <span class="token-comment">/* Periwinkle */</span>
+  <span class="token-var">--blue-soft</span>:       <span class="token-val">#A8C4FF</span>;
+  <span class="token-var">--blue</span>:            <span class="token-val">#5B8FE8</span>;
+
+  <span class="token-comment">/* Text */</span>
+  <span class="token-var">--text-primary</span>:    <span class="token-val">#0D0A18</span>;
+  <span class="token-var">--text-secondary</span>:  <span class="token-val">#6B6080</span>;
+  <span class="token-var">--text-muted</span>:      <span class="token-val">#A89EC0</span>;
+
+  <span class="token-comment">/* Borders */</span>
+  <span class="token-var">--border</span>:          <span class="token-val">#E4DEFF</span>;
+  <span class="token-var">--border-strong</span>:   <span class="token-val">#C8BEFF</span>;
+
+  <span class="token-comment">/* Functional */</span>
+  <span class="token-var">--pink</span>:            <span class="token-val">#FF6B9D</span>;
+
+  <span class="token-comment">/* Dark card (output page) */</span>
+  <span class="token-var">--card-bg</span>:         <span class="token-val">#0D0A1A</span>;
+  <span class="token-var">--card-surface</span>:    <span class="token-val">#1C1535</span>;
+  <span class="token-var">--card-border</span>:     <span class="token-val">#2A2048</span>;
+  <span class="token-var">--card-text</span>:       <span class="token-val">#F5F0FF</span>;
+  <span class="token-var">--card-muted</span>:      <span class="token-val">#7A6FA8</span>;
+
+  <span class="token-comment">/* Border Radius */</span>
+  <span class="token-var">--r-sm</span>:            <span class="token-val">8px</span>;
+  <span class="token-var">--r-md</span>:            <span class="token-val">14px</span>;
+  <span class="token-var">--r-lg</span>:            <span class="token-val">20px</span>;
+  <span class="token-var">--r-pill</span>:          <span class="token-val">50px</span>;
+
+  <span class="token-comment">/* Font */</span>
+  <span class="token-var">--font</span>:            <span class="token-val">'Plus Jakarta Sans', sans-serif</span>;
+}
+    </div>
+  </div>
+
+  <div style="text-align:center;font-size:12px;color:#A89EC0;padding:20px 0">
+    dedic.to palette · brat green × digital lavender × Y2K periwinkle
+  </div>
+
+</div>
+</body>
+</html>
