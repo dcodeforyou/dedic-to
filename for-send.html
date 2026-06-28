@@ -916,7 +916,7 @@ async function fetchSongs(q) {
       renderResults((data.results || []).map(normalizeItunesTrack));
       return;
     } catch(e) {
-      if (sig.aborted || e.name === 'AbortError') return;
+      if (sig.aborted) return;
     }
   }
 
