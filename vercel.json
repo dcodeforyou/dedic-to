@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/search.js": { "runtime": "nodejs18.x" }
+    "api/search.js": { "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/for-send", "destination": "/for-send.html" },

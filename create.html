@@ -1267,14 +1267,13 @@ async function fetchSongs(q) {
   const sig = searchCtrl.signal;
   const directUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&limit=8`;
 
-  async function tFetch(url, opts = {}) {
+  async function tFetch(url, timeoutMs = 10000, opts = {}) {
     if (sig.aborted) throw new DOMException('', 'AbortError');
     const tc = new AbortController();
-    const tid = setTimeout(() => tc.abort(), 6000);
+    const tid = setTimeout(() => tc.abort(), timeoutMs);
     sig.addEventListener('abort', () => tc.abort(), { once: true });
     try {
       const r = await fetch(url, { ...opts, signal: tc.signal });
-      clearTimeout(tid);
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return await r.json();
     } finally { clearTimeout(tid); }
@@ -1289,10 +1288,10 @@ async function fetchSongs(q) {
   }
 
   const strategies = [
-    () => tFetch(`/api/search?q=${encodeURIComponent(q)}`),
-    () => tFetch(directUrl),
-    () => waitMs(500).then(() => tFetch(directUrl)),
-    () => tFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`, { credentials: 'omit' }),
+    () => tFetch(`/api/search?q=${encodeURIComponent(q)}`, 13000),
+    () => tFetch(directUrl, 8000),
+    () => waitMs(500).then(() => tFetch(directUrl, 8000)),
+    () => tFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`, 8000, { credentials: 'omit' }),
   ];
 
   for (const strategy of strategies) {
