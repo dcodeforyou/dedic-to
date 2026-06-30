@@ -495,7 +495,7 @@
       <div class="confirm-title">dedication sent anonymously</div>
       <div class="confirm-sub">they'll never know it was you</div>
       <button class="confirm-again-btn" id="confirm-again">dedicate another →</button>
-      <a class="confirm-own-link" href="for.html">want your own link?</a>
+      <a class="confirm-own-link" href="/for">want your own link?</a>
     </div>
   </div>
 </div>
@@ -526,7 +526,7 @@
 <div class="coffee-toast" id="coffee-toast">
   <span class="ct-cup"><svg width="20" height="20" viewBox="0 0 512 512" fill="none"><defs><clipPath id="gst-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs><g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round"><path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/></g><path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/><rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/><path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/><path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gst-clip)"/><path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/></svg></span>
   <span class="ct-text">made your day a little better?</span>
-  <a class="ct-link" href="/support.html">support us</a>
+  <a class="ct-link" href="/support">support us</a>
   <button class="ct-close" onclick="hideCoffeeToast()">✕</button>
 </div>
 
@@ -1157,7 +1157,7 @@ initPage();
 // ════════════════════════════════════════════════════════════
 //  COFFEE FLOAT + TOAST
 // ════════════════════════════════════════════════════════════
-document.getElementById('coffee-float').addEventListener('click', () => window.open('/support.html', '_blank'));
+document.getElementById('coffee-float').addEventListener('click', () => window.open('/support', '_blank'));
 function showCoffeeToast() {
   if (sessionStorage.getItem('dedic-coffee')) return;
   sessionStorage.setItem('dedic-coffee', '1');

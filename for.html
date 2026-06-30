@@ -498,7 +498,7 @@
       </div>
       <button class="test-mode-btn" id="btn-test" style="display:none" aria-hidden="true"></button>
     </div>
-    <a href="create.html" class="create-nudge">dedicate a song to someone →</a>
+    <a href="/" class="create-nudge">dedicate a song to someone →</a>
   </div>
 </div>
 
@@ -606,7 +606,7 @@ function isTestMode() { return !!localStorage.getItem('__dx'); }
 let testModeActive = false;
 
 document.getElementById('btn-test').addEventListener('click', () => {
-  if (isTestMode()) { window.location.href = 'for-inbox.html'; return; }
+  if (isTestMode()) { window.location.href = '/inbox'; return; }
   testModeActive = true;
   showView('view-setup');
   setTimeout(() => document.getElementById('display-name-input').focus(), 80);
@@ -644,7 +644,7 @@ createBtn.addEventListener('click', async () => {
       is_test:      true,
     }));
     localStorage.removeItem('__dxd');
-    window.location.href = 'for-inbox.html';
+    window.location.href = '/inbox';
     return;
   }
 
@@ -675,7 +675,7 @@ createBtn.addEventListener('click', async () => {
       }
     }
 
-    window.location.href = 'for-inbox.html';
+    window.location.href = '/inbox';
   } catch (err) {
     console.error(err);
     showToast('something went wrong — please try again');
@@ -692,7 +692,7 @@ async function initAuthFlow() {
 
   if (isTestMode()) {
     showView('view-exists');
-    setTimeout(() => { window.location.href = 'for-inbox.html'; }, 400);
+    setTimeout(() => { window.location.href = '/inbox'; }, 400);
     return;
   }
 
@@ -723,7 +723,7 @@ async function initAuthFlow() {
   if (rows && rows.length > 0) {
     // Page already exists
     showView('view-exists');
-    setTimeout(() => { window.location.href = 'for-inbox.html'; }, 600);
+    setTimeout(() => { window.location.href = '/inbox'; }, 600);
   } else {
     showView('view-setup');
     nameInput.focus();
@@ -824,7 +824,7 @@ let resizeTimer;
 window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>buildPx(),140);});
 buildPx(); requestAnimationFrame(bgTick);
 
-document.getElementById('coffee-float').addEventListener('click', () => window.open('/support.html', '_blank'));
+document.getElementById('coffee-float').addEventListener('click', () => window.open('/support', '_blank'));
 
 // ════════════════════════════════════════════════════════════
 //  SPLASH

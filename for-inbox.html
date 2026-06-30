@@ -636,7 +636,7 @@
 
     <div id="inbox-content" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
 
-    <a href="create.html" class="create-nudge">dedicate a song to someone →</a>
+    <a href="/" class="create-nudge">dedicate a song to someone →</a>
 
   </div>
 </div>
@@ -1193,7 +1193,7 @@ function renderInbox(pageRow, dedications) {
     } else {
       await sb.auth.signOut();
     }
-    location.href = 'for.html';
+    location.href = '/for';
   });
 
   const content = document.getElementById('inbox-content');
@@ -1322,14 +1322,14 @@ function renderInbox(pageRow, dedications) {
 
     // ── REAL AUTH ────────────────────────────────────────────────
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'for.html'; return; }
+    if (!session) { window.location.href = '/for'; return; }
 
     const { data: pageRow, error: pageErr } = await sb.from('receiver_pages')
       .select('*')
       .eq('user_id', session.user.id)
       .single();
 
-    if (pageErr || !pageRow) { window.location.href = 'for.html'; return; }
+    if (pageErr || !pageRow) { window.location.href = '/for'; return; }
 
     const { data: dedications } = await sb.from('anonymous_dedications')
       .select('*')
@@ -1346,7 +1346,7 @@ function renderInbox(pageRow, dedications) {
   }
 })();
 
-document.getElementById('coffee-float').addEventListener('click', () => window.open('/support.html', '_blank'));
+document.getElementById('coffee-float').addEventListener('click', () => window.open('/support', '_blank'));
 
 // ════════════════════════════════════════════════════════════
 //  PLATFORM SHARE PANEL
