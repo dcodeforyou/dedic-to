@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>dedic.to — dedicate a song</title>
+  <link rel="icon" href="tab-title.png" type="image/png">
+  <meta name="theme-color" content="#7C4DFF">
+  <meta name="description" content="send anonymous song dedications to people you care about">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="dedic.to — dedicate a song">
+  <meta property="og:description" content="send anonymous song dedications to people you care about">
+  <meta property="og:url" content="https://dedic.to">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <style>
@@ -201,24 +208,63 @@
     .generate-btn:disabled { opacity: .34; cursor: default; }
 
     /* ═══ STEP 3 — STORY CARD ═══════════════════════════════════ */
-    .story-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 28px; }
+    .story-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
     .story-card {
-      width: 270px; height: 480px;
-      background: #0D0A1A; border-radius: 22px; overflow: hidden;
+      width: 270px; height: 480px; border-radius: 22px; overflow: hidden;
       display: flex; flex-direction: column; align-items: center;
-      position: relative;
-      box-shadow: 0 28px 72px rgba(13,10,26,.52), 0 0 0 1px rgba(255,255,255,.06);
+      position: relative; cursor: grab; user-select: none;
+      transition: background .35s, box-shadow .35s;
     }
-    #card-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .story-card[data-ctheme="dark"] { background:#0D0A1A; box-shadow:0 28px 72px rgba(13,10,26,.52),0 0 0 1px rgba(255,255,255,.06); }
+    .story-card[data-ctheme="light"] { background:#F8F5FF; box-shadow:0 28px 72px rgba(80,50,180,.14),0 0 0 1px rgba(180,160,225,.28); }
+    .story-card[data-ctheme="glass"] { background:rgba(10,6,28,.32); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); box-shadow:0 28px 72px rgba(13,10,26,.40),0 0 0 1px rgba(255,255,255,.16); }
+
+    #card-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity .35s; }
+    .story-card[data-ctheme="light"] #card-bg-canvas { mix-blend-mode:multiply; opacity:.5; }
+    .story-card[data-ctheme="glass"] #card-bg-canvas { opacity:.55; }
+
     .card-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; padding: 36px 22px 24px; }
     .sc-art { width: 150px; height: 150px; border-radius: 14px; object-fit: cover; margin-bottom: 18px; box-shadow: 0 12px 32px rgba(0,0,0,.5); background: #1C1535; flex-shrink: 0; }
-    .sc-name { font-size: 15px; font-weight: 800; color: #F5F0FF; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-bottom: 4px; flex-shrink: 0; }
-    .sc-artist { font-size: 11px; color: #7A6FA8; text-align: center; margin-bottom: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0; }
-    .sc-pill { background: #BEFF29; color: #0D0A18; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 5px 12px; border-radius: 50px; margin-bottom: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
-    .sc-message { font-size: 11px; color: #C4ACFF; font-style: italic; text-align: center; line-height: 1.55; overflow: hidden; flex-shrink: 0; max-height: 52px; }
+    .sc-name { font-size: 15px; font-weight: 800; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; margin-bottom: 4px; flex-shrink: 0; transition: color .35s; }
+    .sc-artist { font-size: 11px; text-align: center; margin-bottom: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; flex-shrink: 0; transition: color .35s; }
+    .sc-pill { font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 5px 12px; border-radius: 50px; margin-bottom: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; transition: background .35s, color .35s; }
+    .sc-message { font-size: 11px; font-style: italic; text-align: center; line-height: 1.55; overflow: hidden; flex-shrink: 0; max-height: 52px; transition: color .35s; }
     .sc-spacer { flex: 1; }
-    .sc-cta { font-size: 12px; color: #BEFF29; font-weight: 700; margin-bottom: 8px; }
-    .sc-mark { font-size: 10px; color: #2A2048; font-weight: 700; letter-spacing: .1em; }
+    .sc-cta { font-size: 12px; font-weight: 700; margin-bottom: 8px; transition: color .35s; }
+    .sc-mark { font-size: 10px; font-weight: 700; letter-spacing: .1em; transition: color .35s; }
+
+    /* per-theme text colours */
+    .story-card[data-ctheme="dark"] .sc-name   { color:#F5F0FF; }
+    .story-card[data-ctheme="dark"] .sc-artist { color:#7A6FA8; }
+    .story-card[data-ctheme="dark"] .sc-pill   { background:#BEFF29; color:#0D0A18; }
+    .story-card[data-ctheme="dark"] .sc-message{ color:#C4ACFF; }
+    .story-card[data-ctheme="dark"] .sc-cta    { color:#BEFF29; }
+    .story-card[data-ctheme="dark"] .sc-mark   { color:#2A2048; }
+
+    .story-card[data-ctheme="light"] .sc-name   { color:#0D0A18; }
+    .story-card[data-ctheme="light"] .sc-artist { color:#6B6080; }
+    .story-card[data-ctheme="light"] .sc-pill   { background:#7C4DFF; color:#fff; }
+    .story-card[data-ctheme="light"] .sc-message{ color:#5B2FE8; }
+    .story-card[data-ctheme="light"] .sc-cta    { color:#7C4DFF; }
+    .story-card[data-ctheme="light"] .sc-mark   { color:#C4ACFF; }
+
+    .story-card[data-ctheme="glass"] .sc-name   { color:#F5F0FF; }
+    .story-card[data-ctheme="glass"] .sc-artist { color:rgba(200,185,240,.7); }
+    .story-card[data-ctheme="glass"] .sc-pill   { background:rgba(190,255,41,.88); color:#0D0A18; }
+    .story-card[data-ctheme="glass"] .sc-message{ color:rgba(196,172,255,.85); }
+    .story-card[data-ctheme="glass"] .sc-cta    { color:rgba(190,255,41,.9); }
+    .story-card[data-ctheme="glass"] .sc-mark   { color:rgba(255,255,255,.22); }
+
+    /* carousel dots */
+    .card-theme-dots { display:flex; gap:7px; justify-content:center; margin-top:13px; }
+    .ctd { width:7px; height:7px; border-radius:50%; border:none; cursor:pointer; padding:0; -webkit-tap-highlight-color:transparent; transition:all .25s cubic-bezier(.23,1,.32,1); }
+    .ctd[data-ctheme="dark"]  { background:rgba(124,77,255,.35); }
+    .ctd[data-ctheme="light"] { background:rgba(196,172,255,.5); }
+    .ctd[data-ctheme="glass"] { background:rgba(190,255,41,.35); }
+    .ctd.active { width:22px; border-radius:3.5px; }
+    .ctd[data-ctheme="dark"].active  { background:#7C4DFF; }
+    .ctd[data-ctheme="light"].active { background:#A080E8; }
+    .ctd[data-ctheme="glass"].active { background:#BEFF29; }
 
     /* ═══ STEP 3 — SHARE CONTROLS ═══════════════════════════════ */
     .share-link-wrap { width: 100%; max-width: 420px; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.52); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(180,160,225,.38); border-radius: 12px; padding: 11px 14px; margin-bottom: 18px; }
@@ -313,6 +359,9 @@
     /* ═══ COMPOSING OVERLAY ═════════════════════════════════════ */
     .composing-overlay { position: fixed; inset: 0; z-index: 300; background: #0D0A1A; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .4s; }
     .composing-overlay.show { opacity: 1; pointer-events: all; }
+    .comp-cancel-btn { margin-top: 28px; background: none; border: 1.5px solid rgba(255,255,255,0.18); border-radius: 50px; color: rgba(255,255,255,0.45); font-size: 14px; font-weight: 600; font-family: var(--font); padding: 10px 28px; cursor: pointer; transition: border-color .2s, color .2s; -webkit-tap-highlight-color: transparent; letter-spacing: .02em; }
+    .comp-cancel-btn:hover { border-color: rgba(255,91,173,0.55); color: rgba(255,91,173,0.75); }
+    .comp-cancel-btn:active { transform: scale(.96); }
     .comp-art-wrap { position: relative; width: 220px; height: 220px; margin-bottom: 40px; }
     .comp-art { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; animation: vinyl-spin 3s linear infinite; display: block; }
     @keyframes vinyl-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -471,6 +520,26 @@
     body.dark .cp-est { color: #6B5F8C; }
     body.dark .wf-slider { background: rgba(196,172,255,.18); }
 
+    /* ═══ COFFEE FLOAT ═════════════════════════════════════════ */
+    .coffee-float { position:fixed; bottom:24px; right:20px; z-index:500; cursor:pointer; -webkit-tap-highlight-color:transparent; display:flex; align-items:center; overflow:visible; }
+    .coffee-float svg { width:40px; height:40px; animation:cfGlow 3s ease-in-out infinite; transition:filter .3s; }
+    .coffee-float:hover svg { filter:drop-shadow(0 0 14px rgba(255,255,255,.7)); animation:none; }
+    .coffee-float:active svg { transform:scale(.90); animation:none; }
+    @keyframes cfGlow{0%,100%{filter:drop-shadow(0 2px 10px rgba(255,255,255,.22)) drop-shadow(0 0 5px rgba(255,245,225,.15))}50%{filter:drop-shadow(0 2px 18px rgba(255,255,255,.48)) drop-shadow(0 0 10px rgba(255,245,225,.30))}}
+    .cf-tip { font-size:11px; font-weight:700; font-family:var(--font); color:var(--text-sec); white-space:nowrap; background:rgba(255,255,255,.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(180,160,225,.30); border-radius:20px; padding:5px 11px; margin-right:8px; opacity:0; transform:translateX(6px); transition:opacity .2s,transform .2s; pointer-events:none; }
+    body.dark .cf-tip { background:rgba(18,10,38,.90); color:#B0A0D8; border-color:rgba(124,77,255,.25); }
+    .coffee-float:hover .cf-tip { opacity:1; transform:translateX(0); }
+    .coffee-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(110px); z-index:600; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.92); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1.5px solid rgba(180,160,225,.35); border-radius:50px; padding:11px 14px 11px 13px; box-shadow:0 8px 32px rgba(124,77,255,.18); transition:transform .45s cubic-bezier(.23,1,.32,1),opacity .45s; opacity:0; pointer-events:none; max-width:calc(100vw - 48px); width:max-content; }
+    body.dark .coffee-toast { background:rgba(18,10,38,.92); border-color:rgba(124,77,255,.28); }
+    .coffee-toast.show { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
+    .ct-cup { display:flex; align-items:center; flex-shrink:0; animation:ctSipWiggle 1.6s ease-in-out infinite; transform-origin:bottom center; }
+    @keyframes ctSipWiggle{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-15deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-7deg)}80%{transform:rotate(4deg)}}
+    .ct-text { font-size:12px; font-weight:600; color:var(--text-sec); font-family:var(--font); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+    body.dark .ct-text { color:#B0A0D8; }
+    .ct-link { font-size:12px; font-weight:700; color:var(--purple); font-family:var(--font); text-decoration:none; flex-shrink:0; padding:4px 10px; border-radius:20px; background:rgba(124,77,255,.10); transition:background .15s; white-space:nowrap; }
+    .ct-link:hover { background:rgba(124,77,255,.20); }
+    .ct-close { background:none; border:none; cursor:pointer; font-size:12px; color:var(--text-muted); padding:0 0 0 2px; font-family:var(--font); -webkit-tap-highlight-color:transparent; flex-shrink:0; line-height:1; }
+
     /* ═══ DESKTOP ════════════════════════════════════════════════ */
     @media (min-width: 640px) {
       .page { padding: 76px 40px 100px; }
@@ -484,9 +553,53 @@
       #vid-share-panel.show { transform: translateX(-50%) translateY(-50%); opacity: 1; pointer-events: auto; animation: glow-cycle 4s linear infinite; }
       .vsp-handle { display: none; }
     }
+    /* ── PLATFORM SHARE PANEL ──────────────────────────────────── */
+    .psh-scrim { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0); pointer-events:none; transition:background .3s; }
+    .psh-scrim.show { background:rgba(0,0,0,.45); pointer-events:all; }
+    .psh-panel { position:fixed; bottom:0; left:0; right:0; z-index:601; background:rgba(255,255,255,.96); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border-radius:24px 24px 0 0; padding:0 18px max(env(safe-area-inset-bottom,0px),20px); transform:translateY(100%); transition:transform .38s cubic-bezier(.32,1,.32,1); max-width:480px; margin:0 auto; box-shadow:0 -4px 32px rgba(0,0,0,.10); border-top:1.5px solid rgba(180,160,225,.18); }
+    .psh-panel.show { transform:translateY(0); }
+    .psh-handle { width:36px; height:4px; border-radius:2px; background:rgba(0,0,0,.12); margin:14px auto 20px; }
+    .psh-title { font-size:17px; font-weight:800; color:var(--text-primary,#0D0A18); text-align:center; letter-spacing:-.02em; margin-bottom:4px; }
+    .psh-sub { font-size:12px; color:var(--text-muted,#A89EC0); text-align:center; margin-bottom:22px; }
+    .psh-platforms { display:flex; gap:10px; margin-bottom:18px; }
+    .psh-plat { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; padding:15px 6px 13px; border-radius:18px; border:1.5px solid rgba(180,160,225,.22); background:rgba(124,77,255,.04); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .18s, border-color .18s, transform .12s; font-family:var(--font); }
+    .psh-plat:active { transform:scale(.93); }
+    .psh-plat-icon { width:50px; height:50px; border-radius:14px; flex-shrink:0; object-fit:cover; }
+    .psh-plat-name { font-size:12px; font-weight:700; color:var(--text-primary,#0D0A18); letter-spacing:-.01em; }
+    .psh-plat-badge { font-size:10px; font-weight:600; color:rgba(124,77,255,.75); }
+    .psh-plat-badge--dim { color:var(--text-muted,#A89EC0); opacity:.7; }
+    .psh-divider { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .psh-divider::before,.psh-divider::after { content:''; flex:1; height:1px; background:rgba(0,0,0,.08); }
+    .psh-divider span { font-size:11px; color:var(--text-muted,#A89EC0); letter-spacing:.06em; text-transform:uppercase; }
+    .psh-utils { display:flex; gap:10px; margin-bottom:10px; }
+    .psh-util { flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:13px 8px; border-radius:14px; border:1.5px solid rgba(180,160,225,.28); background:rgba(124,77,255,.05); font-size:14px; font-weight:600; color:var(--purple,#7C4DFF); font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .18s; }
+    .psh-util:active { transform:scale(.97); }
+    .psh-cancel-btn { width:100%; padding:14px; border-radius:14px; background:transparent; border:none; font-size:14px; font-weight:600; color:var(--text-muted,#A89EC0); font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; margin-bottom:4px; }
+    body.dark .psh-panel { background:rgba(18,12,36,.96); border-top-color:rgba(124,77,255,.22); box-shadow:0 -4px 32px rgba(0,0,0,.4); }
+    body.dark .psh-handle { background:rgba(255,255,255,.14); }
+    body.dark .psh-plat { border-color:rgba(255,255,255,.08); background:rgba(255,255,255,.04); }
+    body.dark .psh-plat-badge { color:rgba(190,255,41,.8); }
+    body.dark .psh-plat-badge--dim { color:rgba(196,172,255,.4); opacity:1; }
+    body.dark .psh-divider::before, body.dark .psh-divider::after { background:rgba(255,255,255,.08); }
+    body.dark .psh-util { border-color:rgba(255,255,255,.1); background:rgba(255,255,255,.05); color:#C4ACFF; }
+    body.dark .psh-cancel-btn { color:rgba(196,172,255,.45); }
+
+    /* ═══ SPLASH SCREEN ══════════════════════════════════════════ */
+    #splash { position:fixed; inset:0; z-index:9999; background:#0D0A18; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:opacity .38s cubic-bezier(.4,0,1,1); }
+    #splash.hide { opacity:0; pointer-events:none; }
+    #splash.gone { display:none; }
+    #splash-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    #splash-logo {
+      position:relative; z-index:1;
+      width:clamp(200px,55vw,380px); height:auto;
+      opacity:0;
+      filter:drop-shadow(0 0 28px rgba(124,77,255,.55));
+    }
   </style>
 </head>
 <body>
+
+<div id="splash"><canvas id="splash-canvas"></canvas><img id="splash-logo" src="dedic-main-logo.svg" alt="dedic.to" draggable="false"></div>
 
 <canvas id="bg"></canvas>
 <div id="sticker-tip"></div>
@@ -572,6 +685,7 @@
   </div>
   <div class="comp-text" id="comp-text">composing your dedication</div>
   <div class="comp-countdown" id="comp-countdown"></div>
+  <button class="comp-cancel-btn" id="comp-cancel-btn">✕ cancel</button>
 </div>
 
 <!-- ══ VIEW 1 ═══════════════════════════════════════════ -->
@@ -657,7 +771,7 @@
       back
     </button>
     <div class="story-wrap">
-      <div class="story-card">
+      <div class="story-card" id="story-card" data-ctheme="dark">
         <canvas id="card-bg-canvas"></canvas>
         <div class="card-content">
           <img class="sc-art" id="sc-art" alt="">
@@ -669,6 +783,11 @@
           <div class="sc-cta">dedicate yours ↓</div>
           <div class="sc-mark">dedic.to</div>
         </div>
+      </div>
+      <div class="card-theme-dots">
+        <button class="ctd active" data-ctheme="dark"  aria-label="dark"></button>
+        <button class="ctd"        data-ctheme="light" aria-label="light"></button>
+        <button class="ctd"        data-ctheme="glass" aria-label="glass"></button>
       </div>
     </div>
     <div class="share-link-wrap">
@@ -692,6 +811,36 @@
   </div>
 </div>
 
+<!-- Coffee float -->
+<div class="coffee-float" id="coffee-float">
+  <div class="cf-tip">support dedic.to</div>
+  <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="gcf-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs>
+    <g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round">
+      <path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/>
+    </g>
+    <path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/>
+    <rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/>
+    <path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/>
+    <rect x="168" y="145" width="176" height="13" rx="6.5" fill="#5A4033"/>
+    <path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/>
+    <path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gcf-clip)"/>
+    <path d="M146 357c33-19 63-15 92 11 40 36 81 38 123 5l-5 57c-38 24-77 19-114-13-30-27-60-29-92-9z" fill="#BEC5C8" opacity=".34" clip-path="url(#gcf-clip)"/>
+    <path d="M158 179h21l-17 239c-1 15 5 27 18 36-20-3-30-13-32-32z" fill="#BEC5C8" opacity=".23" clip-path="url(#gcf-clip)"/>
+    <path d="M337 177h16l-9 112c-6-1-12 0-18 2z" fill="#BEC5C8" opacity=".4" clip-path="url(#gcf-clip)"/>
+    <path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/>
+    <circle cx="292" cy="251" r="7" fill="#BEC5C8"/>
+  </svg>
+</div>
+
+<!-- Coffee toast -->
+<div class="coffee-toast" id="coffee-toast">
+  <span class="ct-cup"><svg width="20" height="20" viewBox="0 0 512 512" fill="none"><defs><clipPath id="gct-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs><g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round"><path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/></g><path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/><rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/><path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/><path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gct-clip)"/><path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/></svg></span>
+  <span class="ct-text">made your day a little better?</span>
+  <a class="ct-link" href="/support.html">support us</a>
+  <button class="ct-close" onclick="hideCoffeeToast()">✕</button>
+</div>
+
 <!-- Theme toggle -->
 <button id="theme-toggle" aria-label="Toggle dark mode">
   <div class="tt-track">
@@ -710,6 +859,43 @@
   <button class="vsp-btn vsp-share" id="vsp-share-btn">share via apps</button>
   <button class="vsp-btn vsp-dl"    id="vsp-dl-btn">save to device</button>
   <button class="vsp-btn vsp-cancel" id="vsp-cancel-btn">cancel</button>
+</div>
+
+<!-- Platform Share Panel -->
+<div class="psh-scrim" id="psh-scrim"></div>
+<div class="psh-panel" id="psh-panel">
+  <div class="psh-handle"></div>
+  <div class="psh-title">share your dedication</div>
+  <div class="psh-sub" id="psh-sub">choose where to share</div>
+  <div class="psh-platforms">
+    <button class="psh-plat" id="psh-insta">
+      <img class="psh-plat-icon" src="instagram-app-icon.svg" alt="Instagram">
+      <span class="psh-plat-name">Instagram</span>
+      <span class="psh-plat-badge" id="psh-badge-insta">video + music</span>
+    </button>
+    <button class="psh-plat" id="psh-snap">
+      <img class="psh-plat-icon" src="snapchat-app-icon.svg" alt="Snapchat">
+      <span class="psh-plat-name">Snapchat</span>
+      <span class="psh-plat-badge" id="psh-badge-snap">swipe-up link</span>
+    </button>
+    <button class="psh-plat" id="psh-tiktok">
+      <img class="psh-plat-icon" src="tiktok-app-icon.svg" alt="TikTok">
+      <span class="psh-plat-name">TikTok</span>
+      <span class="psh-plat-badge psh-plat-badge--dim" id="psh-badge-tiktok">card only</span>
+    </button>
+  </div>
+  <div class="psh-divider"><span>or</span></div>
+  <div class="psh-utils">
+    <button class="psh-util" id="psh-copy">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      copy link
+    </button>
+    <button class="psh-util" id="psh-more">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/></svg>
+      more apps
+    </button>
+  </div>
+  <button class="psh-cancel-btn" id="psh-cancel">cancel</button>
 </div>
 
 <script>
@@ -1137,6 +1323,41 @@ loadTopSongs();
 
 
 // ════════════════════════════════════════════════════════════
+//  CARD THEME CAROUSEL
+// ════════════════════════════════════════════════════════════
+(function() {
+  const card  = document.getElementById('story-card');
+  const dots  = Array.from(document.querySelectorAll('.ctd'));
+  const themes = ['dark', 'light', 'glass'];
+  let cur = 0, dragX = 0, dragging = false;
+
+  function setTheme(idx) {
+    cur = ((idx % 3) + 3) % 3;
+    card.dataset.ctheme = themes[cur];
+    dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+  }
+
+  dots.forEach((d, i) => d.addEventListener('click', () => setTheme(i)));
+
+  // Touch swipe
+  card.addEventListener('touchstart', e => { dragX = e.touches[0].clientX; }, { passive: true });
+  card.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - dragX;
+    if (Math.abs(dx) > 36) setTheme(cur + (dx < 0 ? 1 : -1));
+  });
+
+  // Mouse drag
+  card.addEventListener('mousedown',  e => { dragX = e.clientX; dragging = true; });
+  card.addEventListener('mouseup',    e => {
+    if (!dragging) return; dragging = false;
+    const dx = e.clientX - dragX;
+    if (Math.abs(dx) > 36) setTheme(cur + (dx < 0 ? 1 : -1));
+  });
+  card.addEventListener('mouseleave', () => { dragging = false; });
+})();
+
+
+// ════════════════════════════════════════════════════════════
 //  APP STATE
 // ════════════════════════════════════════════════════════════
 const app = { song: null, artUrl: null, category: null, message: '' };
@@ -1389,26 +1610,12 @@ $genBtn.addEventListener('click', async () => {
   if (!app.song || !app.category) return;
   $genBtn.disabled = true; $genBtn.textContent = 'generating...';
   await new Promise(r => setTimeout(r, 800));
-  buildShareUrl(); populateStep3();
-  showView('view-3');
+  populateStep3();
+  showView('view-3'); showCoffeeToast();
   $genBtn.disabled = false; $genBtn.textContent = 'generate →';
 });
 
-let shareUrl = '';
-function buildShareUrl() {
-  const s = {
-    trackId:    String(app.song.trackId),
-    trackName:  app.song.trackName,
-    artistName: app.song.artistName,
-    artworkUrl: app.song.artworkUrlHQ || (app.song.artworkUrl100||'').replace('100x100bb','600x600bb'),
-    previewUrl: app.song.previewUrl || null,
-    category:   app.category,
-    message:    app.message,
-  };
-  let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(s))));
-  b64 = b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-  shareUrl = `${location.origin}/view?d=${b64}`;
-}
+const shareUrl = 'https://dedic.to';
 
 function populateStep3() {
   document.getElementById('sc-art').src = app.artUrl;
@@ -1418,7 +1625,7 @@ function populateStep3() {
   const msgEl = document.getElementById('sc-message');
   msgEl.textContent = app.message || '';
   msgEl.style.display = app.message ? '' : 'none';
-  document.getElementById('share-url').textContent = shareUrl;
+  document.getElementById('share-url').textContent = 'dedic.to';
 
   // Set song thumbnail as background on both share cards
   const thumb = app.artUrl || app.song.artworkUrl100 || '';
@@ -1449,39 +1656,141 @@ function populateStep3() {
 document.getElementById('copy-btn').addEventListener('click', async () => {
   const btn = document.getElementById('copy-btn');
   try {
-    await navigator.clipboard.writeText(shareUrl);
+    await navigator.clipboard.writeText('https://dedic.to');
     btn.textContent = 'copied!'; btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
   } catch {}
 });
 
 // Share as image
-document.getElementById('share-image-card').addEventListener('click', async () => {
-  const card = document.getElementById('share-image-card');
-  const orig = card.querySelector('.scc-label').textContent;
-  card.querySelector('.scc-label').textContent = 'preparing...';
+// ════════════════════════════════════════════════════════════
+//  PLATFORM SHARE PANEL
+// ════════════════════════════════════════════════════════════
+const META_APP_ID     = 'YOUR_META_APP_ID';
+const SNAPCHAT_APP_ID = 'YOUR_SNAP_CLIENT_ID';
+
+let _pshMode = 'image'; // 'image' | 'video'
+
+function openPlatSharePanel(mode) {
+  _pshMode = mode;
+  const isVid = mode === 'video';
+  document.getElementById('psh-sub').textContent = isVid
+    ? 'share your dedication with music'
+    : 'share your dedication card';
+  _updatePshBadges(isVid);
+  document.getElementById('psh-scrim').classList.add('show');
+  document.getElementById('psh-panel').classList.add('show');
+}
+
+function closePlatSharePanel() {
+  document.getElementById('psh-scrim').classList.remove('show');
+  document.getElementById('psh-panel').classList.remove('show');
+}
+
+function _updatePshBadges(isVid) {
+  const native = isNativeApp();
+  document.getElementById('psh-badge-insta').textContent  = isVid ? 'video + music' : native ? 'image + link' : 'image only';
+  document.getElementById('psh-badge-snap').textContent   = isVid ? 'video + link'  : native ? 'image + link' : 'image only';
+  document.getElementById('psh-badge-tiktok').textContent = 'card only';
+  document.getElementById('psh-sub').textContent = native
+    ? (isVid ? 'share your dedication with music' : 'share your dedication card')
+    : (isVid ? 'share your dedication with music' : 'share card · copy link to add it');
+}
+
+function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.()); }
+
+function showToast(msg, duration) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(30,20,60,.92);color:#C4ACFF;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;z-index:9999;pointer-events:none;transition:opacity .4s;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, duration || 3000);
+}
+
+async function _getPshAssets() {
+  if (_pshMode === 'video' && videoBlob) {
+    return { videoBlob, imageBlob: null };
+  }
+  const c = await generateCardCanvas();
+  return new Promise(res => {
+    c.toBlob(blob => res({ videoBlob: null, imageBlob: blob }), 'image/png');
+  });
+}
+
+async function _shareToPlatform(platform) {
+  closePlatSharePanel();
+  if (_pshMode === 'video' && videoBlob) showToast('preparing story…', 20000);
+  const { videoBlob: vb, imageBlob: ib } = await _getPshAssets();
+  const isVid = !!vb;
+  const link = shareUrl || location.origin;
+
+  if (isNativeApp()) {
+    const toBase64 = blob => new Promise((res, rej) => {
+      const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob);
+    });
+    const b64 = await toBase64(vb || ib);
+    try {
+      if (platform === 'insta') {
+        await window.CapacitorCustom.shareToInstagramStories({ backgroundVideoBase64: isVid ? b64 : undefined, backgroundImageBase64: isVid ? undefined : b64, contentUrl: link, appId: META_APP_ID });
+      } else if (platform === 'snap') {
+        await window.CapacitorCustom.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+      } else if (platform === 'tiktok') {
+        await window.CapacitorCustom.shareToTikTok({ mediaBase64: b64, isVideo: isVid });
+      }
+    } catch(e) { showToast('sharing failed, try again'); }
+    return;
+  }
+
+  // Web fallback
+  const file = vb
+    ? new File([vb], 'dedic-to.' + (vb.type.includes('mp4') ? 'mp4' : 'webm'), { type: vb.type })
+    : new File([ib], 'dedic-to.png', { type: 'image/png' });
+
   try {
-    const c = await generateCardCanvas();
-    if (card.dataset.canShare === '1') {
-      await new Promise((res, rej) => {
-        c.toBlob(async blob => {
-          try { await navigator.share({ files: [new File([blob], 'dedic-to.png', { type: 'image/png' })], title: 'dedic.to' }); res(); }
-          catch(e) { rej(e); }
-        }, 'image/png');
-      });
-    } else {
-      const link = document.createElement('a');
-      link.download = 'dedic-to.png';
-      link.href = c.toDataURL('image/png');
-      link.click();
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'dedic.to — a song dedication', url: link });
+      return;
     }
-  } catch {}
-  card.querySelector('.scc-label').textContent = orig;
+  } catch(e) { if (e.name === 'AbortError') return; }
+
+  try {
+    await navigator.share({ title: 'dedic.to — a song dedication', url: link });
+    return;
+  } catch(e) { if (e.name === 'AbortError') return; }
+
+  if (vb) { downloadVideo(); } else {
+    const a = document.createElement('a'); a.download = 'dedic-to.png'; a.href = URL.createObjectURL(ib); a.click();
+  }
+}
+
+document.getElementById('psh-insta').addEventListener('click', () => _shareToPlatform('insta'));
+document.getElementById('psh-snap').addEventListener('click',  () => _shareToPlatform('snap'));
+document.getElementById('psh-tiktok').addEventListener('click',() => _shareToPlatform('tiktok'));
+document.getElementById('psh-scrim').addEventListener('click', closePlatSharePanel);
+document.getElementById('psh-cancel').addEventListener('click', closePlatSharePanel);
+
+document.getElementById('psh-copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(shareUrl || location.origin); showToast('link copied!'); }
+  catch { showToast('copy failed'); }
+  closePlatSharePanel();
 });
 
-// Share as video — opens clip picker or share panel
+document.getElementById('psh-more').addEventListener('click', async () => {
+  closePlatSharePanel();
+  try {
+    await navigator.share({ title: 'dedic.to — a song dedication', url: shareUrl || location.origin });
+  } catch {}
+});
+
+// ════════════════════════════════════════════════════════════
+
+document.getElementById('share-image-card').addEventListener('click', () => {
+  openPlatSharePanel('image');
+});
+
+// Share as video — opens clip picker or platform share panel
 document.getElementById('share-video-card').addEventListener('click', async () => {
-  if (videoBlob) { openVidSharePanel(); return; }
+  if (videoBlob) { openPlatSharePanel('video'); return; }
   await openClipPicker();
 });
 
@@ -1655,6 +1964,7 @@ document.getElementById('cp-rec-btn').addEventListener('click', () => {
 // ════════════════════════════════════════════════════════════
 const COMPOSE_TEXTS = ['composing your dedication', 'brewing something special', 'finding the right moment'];
 let composeStart = 0, composeArcRAF = 0, composingTextIdx = 0, composeTextTimer = 0;
+let _activeRecorder = null, _recStopTimer = null, _recordingCancelled = false;
 const composeAudio = new Audio();
 composeAudio.crossOrigin = 'anonymous';
 
@@ -1869,16 +2179,19 @@ async function recordVideo() {
 
   const chunks = [];
   const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+  _activeRecorder = recorder;
   recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
   recorder.onstop = () => {
     cancelAnimationFrame(recRAF);
+    _activeRecorder = null;
+    if (_recordingCancelled) { _recordingCancelled = false; return; }
     videoBlob = new Blob(chunks, { type: mimeType || 'video/webm' });
     finishComposing();
   };
 
   requestAnimationFrame(renderRecFrame);
   recorder.start();
-  setTimeout(() => recorder.stop(), clipDuration * 1000);
+  _recStopTimer = setTimeout(() => recorder.stop(), clipDuration * 1000);
 }
 
 function openVidSharePanel() {
@@ -1905,6 +2218,15 @@ function downloadVideo() {
   setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
 }
 
+document.getElementById('comp-cancel-btn').addEventListener('click', () => {
+  _recordingCancelled = true;
+  clearTimeout(_recStopTimer);
+  if (_activeRecorder && _activeRecorder.state !== 'inactive') _activeRecorder.stop();
+  cancelAnimationFrame(composeArcRAF);
+  composeAudio.pause();
+  document.getElementById('composing-overlay').classList.remove('show');
+});
+
 document.getElementById('vid-share-scrim').addEventListener('click', closeVidSharePanel);
 document.getElementById('vsp-cancel-btn').addEventListener('click', closeVidSharePanel);
 
@@ -1913,35 +2235,9 @@ document.getElementById('vsp-dl-btn').addEventListener('click', () => {
   downloadVideo();
 });
 
-document.getElementById('vsp-share-btn').addEventListener('click', async () => {
+document.getElementById('vsp-share-btn').addEventListener('click', () => {
   closeVidSharePanel();
-  if (!videoBlob) return;
-
-  const ext      = videoBlob.type.includes('mp4') ? 'mp4' : 'webm';
-  const mimeBase = ext === 'mp4' ? 'video/mp4' : 'video/webm'; // strip codec params for sharing
-  const file     = new File([videoBlob], `dedic-to.${ext}`, { type: mimeBase });
-
-  // 1. Try sharing the actual video file
-  try {
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'dedic.to — a song dedication' });
-      return;
-    }
-  } catch(e) {
-    if (e.name === 'AbortError') return;
-    // file share failed — try URL share next
-  }
-
-  // 2. Fall back to sharing the URL (still opens the OS share sheet)
-  try {
-    await navigator.share({ title: 'dedic.to — a song dedication', url: shareUrl });
-    return;
-  } catch(e) {
-    if (e.name === 'AbortError') return;
-  }
-
-  // 3. Last resort — download
-  downloadVideo();
+  openPlatSharePanel('video');
 });
 
 
@@ -1979,11 +2275,30 @@ async function generateCardCanvas() {
   const c = document.createElement('canvas');
   c.width = CARD_W; c.height = CARD_H;
   const cx = c.getContext('2d');
+  const ctheme = document.getElementById('story-card')?.dataset?.ctheme || 'dark';
 
-  cx.fillStyle = '#0D0A1A'; cx.fillRect(0, 0, CARD_W, CARD_H);
-  const glow = cx.createRadialGradient(CARD_W/2, CARD_H*0.35, 0, CARD_W/2, CARD_H*0.35, CARD_W*0.85);
-  glow.addColorStop(0, 'rgba(124,77,255,0.28)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
-  cx.fillStyle = glow; cx.fillRect(0, 0, CARD_W, CARD_H);
+  if (ctheme === 'light') {
+    cx.fillStyle = '#F8F5FF'; cx.fillRect(0, 0, CARD_W, CARD_H);
+    const glow = cx.createRadialGradient(CARD_W/2, CARD_H*0.35, 0, CARD_W/2, CARD_H*0.35, CARD_W*0.85);
+    glow.addColorStop(0, 'rgba(124,77,255,0.10)'); glow.addColorStop(1, 'rgba(248,245,255,0)');
+    cx.fillStyle = glow; cx.fillRect(0, 0, CARD_W, CARD_H);
+  } else if (ctheme === 'glass') {
+    cx.fillStyle = 'rgba(10,6,28,0.55)'; cx.fillRect(0, 0, CARD_W, CARD_H);
+    const glow = cx.createRadialGradient(CARD_W/2, CARD_H*0.35, 0, CARD_W/2, CARD_H*0.35, CARD_W*0.85);
+    glow.addColorStop(0, 'rgba(124,77,255,0.22)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = glow; cx.fillRect(0, 0, CARD_W, CARD_H);
+  } else {
+    cx.fillStyle = '#0D0A1A'; cx.fillRect(0, 0, CARD_W, CARD_H);
+    const glow = cx.createRadialGradient(CARD_W/2, CARD_H*0.35, 0, CARD_W/2, CARD_H*0.35, CARD_W*0.85);
+    glow.addColorStop(0, 'rgba(124,77,255,0.28)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = glow; cx.fillRect(0, 0, CARD_W, CARD_H);
+  }
+
+  const CT = {
+    dark:  { name:'#F5F0FF', artist:'#7A6FA8', pillBg:'#BEFF29', pillFg:'#0D0A18', msg:'#C4ACFF', cta:'#BEFF29', mark:'rgba(122,111,168,0.6)' },
+    light: { name:'#0D0A18', artist:'#6B6080', pillBg:'#7C4DFF', pillFg:'#fff',    msg:'#5B2FE8', cta:'#7C4DFF', mark:'rgba(196,172,255,0.9)' },
+    glass: { name:'#F5F0FF', artist:'rgba(200,185,240,0.75)', pillBg:'rgba(190,255,41,0.88)', pillFg:'#0D0A18', msg:'rgba(196,172,255,0.85)', cta:'rgba(190,255,41,0.9)', mark:'rgba(255,255,255,0.25)' },
+  }[ctheme];
 
   await document.fonts.ready;
   const artUrl = app.song.artworkUrlHQ || (app.song.artworkUrl100||'').replace('100x100bb','600x600bb');
@@ -2004,29 +2319,29 @@ async function generateCardCanvas() {
   const maxW = CARD_W - 140;
   let yPos = artY + artSize + 80;
 
-  cx.fillStyle = '#F5F0FF'; cx.font = '800 68px "Plus Jakarta Sans",sans-serif'; cx.textAlign = 'center';
+  cx.fillStyle = CT.name; cx.font = '800 68px "Plus Jakarta Sans",sans-serif'; cx.textAlign = 'center';
   cx.fillText(crTrunc(cx, app.song.trackName, maxW), CARD_W/2, yPos); yPos += 72;
 
-  cx.fillStyle = '#7A6FA8'; cx.font = '500 46px "Plus Jakarta Sans",sans-serif';
+  cx.fillStyle = CT.artist; cx.font = '500 46px "Plus Jakarta Sans",sans-serif';
   cx.fillText(crTrunc(cx, app.song.artistName, maxW), CARD_W/2, yPos); yPos += 80;
 
   const pillText = `dedicated to: ${app.category}`;
   cx.font = '700 40px "Plus Jakarta Sans",sans-serif';
   const pW = cx.measureText(pillText).width + 80, pH = 78;
   const pX = (CARD_W - pW)/2, pY = yPos;
-  cx.fillStyle = '#BEFF29'; crRoundRect(cx, pX, pY, pW, pH, pH/2); cx.fill();
-  cx.fillStyle = '#0D0A18'; cx.fillText(pillText, CARD_W/2, pY+pH/2+14); yPos += pH + 60;
+  cx.fillStyle = CT.pillBg; crRoundRect(cx, pX, pY, pW, pH, pH/2); cx.fill();
+  cx.fillStyle = CT.pillFg; cx.fillText(pillText, CARD_W/2, pY+pH/2+14); yPos += pH + 60;
 
   if (app.message) {
-    cx.fillStyle = '#C4ACFF'; cx.font = 'italic 400 40px "Plus Jakarta Sans",sans-serif';
+    cx.fillStyle = CT.msg; cx.font = 'italic 400 40px "Plus Jakarta Sans",sans-serif';
     const lines = crWrap(cx, `"${app.message}"`, maxW);
     for (const line of lines) { cx.fillText(line, CARD_W/2, yPos); yPos += 56; }
   }
 
-  cx.fillStyle = '#BEFF29'; cx.font = '700 48px "Plus Jakarta Sans",sans-serif';
+  cx.fillStyle = CT.cta; cx.font = '700 48px "Plus Jakarta Sans",sans-serif';
   cx.fillText('dedicate yours', CARD_W/2, CARD_H - 240);
   cx.font = '800 90px "Plus Jakarta Sans",sans-serif'; cx.fillText('↓', CARD_W/2, CARD_H - 150);
-  cx.fillStyle = 'rgba(122,111,168,0.6)'; cx.font = '600 36px "Plus Jakarta Sans",sans-serif';
+  cx.fillStyle = CT.mark; cx.font = '600 36px "Plus Jakarta Sans",sans-serif';
   cx.fillText('dedic.to', CARD_W/2, CARD_H - 60);
 
   return c;
@@ -2054,6 +2369,10 @@ async function generateCardCanvas() {
     } else {
       applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
     }
+    // follow system if user hasn't manually chosen
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('dedic-theme')) applyTheme(e.matches);
+    });
   } catch { /* ignore */ }
 })();
 
@@ -2064,6 +2383,121 @@ async function generateCardCanvas() {
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ════════════════════════════════════════════════════════════
+//  COFFEE FLOAT + TOAST
+// ════════════════════════════════════════════════════════════
+document.getElementById('coffee-float').addEventListener('click', () => window.open('/support.html', '_blank'));
+function showCoffeeToast() {
+  if (sessionStorage.getItem('dedic-coffee')) return;
+  sessionStorage.setItem('dedic-coffee', '1');
+  const t = document.getElementById('coffee-toast');
+  document.getElementById('coffee-float').style.display = 'none';
+  setTimeout(() => { t.classList.add('show'); setTimeout(hideCoffeeToast, 6000); }, 1500);
+}
+function hideCoffeeToast() {
+  document.getElementById('coffee-toast').classList.remove('show');
+  setTimeout(() => { document.getElementById('coffee-float').style.display = ''; }, 500);
+}
+
+// ════════════════════════════════════════════════════════════
+//  SPLASH
+// ════════════════════════════════════════════════════════════
+(function() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  // Skip when user navigates between pages in same session
+  if (document.referrer && document.referrer.includes(location.hostname) &&
+      document.referrer !== location.href) {
+    splash.className = 'gone'; return;
+  }
+  const sc = document.getElementById('splash-canvas');
+  const ctx = sc.getContext('2d');
+  sc.width = window.innerWidth; sc.height = window.innerHeight;
+  const logoEl = document.getElementById('splash-logo');
+  const PAL = [[124,77,255],[91,143,232],[190,255,41],[196,172,255],[255,91,173]];
+  const S = 5, CELL = 7;
+
+  const imgReady = logoEl.complete
+    ? Promise.resolve()
+    : new Promise(res => { logoEl.onload = res; logoEl.onerror = res; });
+
+  imgReady.then(() => {
+    const rect = logoEl.getBoundingClientRect();
+    if (!rect.width) { splash.className = 'gone'; return; }
+
+    // Sample SVG pixels via offscreen canvas
+    const off = document.createElement('canvas');
+    off.width  = Math.ceil(rect.width);
+    off.height = Math.ceil(rect.height);
+    const oc = off.getContext('2d');
+    try { oc.drawImage(logoEl, 0, 0, off.width, off.height); } catch { splash.className = 'gone'; return; }
+    const px = oc.getImageData(0, 0, off.width, off.height).data;
+
+    const tcx = rect.left + rect.width/2, tcy = rect.top + rect.height/2;
+    const particles = [];
+
+    for (let y = 0; y < off.height; y += CELL) {
+      for (let x = 0; x < off.width; x += CELL) {
+        if (px[((y * off.width) + x) * 4 + 3] < 90) continue;
+        const wx = rect.left + x;
+        const wy = rect.top  + y;
+        const a = Math.atan2(wy - tcy, wx - tcx);
+        const d = 55 + Math.random() * 180;
+        const dist = Math.sqrt((wx-tcx)**2 + (wy-tcy)**2);
+        const maxD = Math.sqrt((rect.width/2)**2 + (rect.height/2)**2) || 1;
+        const col = PAL[Math.floor(Math.random() * PAL.length)];
+        particles.push({
+          tx: wx, ty: wy,
+          sx: tcx + Math.cos(a)*(dist+d), sy: tcy + Math.sin(a)*(dist+d),
+          r: col[0], g: col[1], b: col[2],
+          pd: Math.random() * 60,
+          fd: (1 - dist/maxD) * 100 + Math.random() * 60,
+        });
+      }
+    }
+    if (!particles.length) { splash.className = 'gone'; return; }
+
+    const CONV=450, FOLD_S=490, FOLD=320, TEXT_S=570, FADE_S=820, FADE=320;
+    const t0 = performance.now();
+    let logoShown = false, done = false;
+    function eOut(t){ return 1-(1-t)*(1-t); }
+
+    function tick(now) {
+      if (done) return;
+      const e = now - t0;
+      ctx.clearRect(0, 0, sc.width, sc.height);
+      for (const p of particles) {
+        const p1 = Math.max(0, Math.min(1, (e - p.pd) / CONV));
+        if (e < FOLD_S + p.fd) {
+          const t = eOut(p1);
+          ctx.globalAlpha = Math.min(1, p1 * 5);
+          ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
+          ctx.fillRect(p.sx + (p.tx-p.sx)*t, p.sy + (p.ty-p.sy)*t, S, S);
+        } else {
+          const ft = Math.max(0, Math.min(1, (e - FOLD_S - p.fd) / FOLD));
+          if (ft >= 1) continue;
+          const h = S * Math.cos(ft * Math.PI/2);
+          ctx.globalAlpha = 1 - ft*ft;
+          ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
+          ctx.fillRect(p.tx, p.ty + (S-h)/2, S, h);
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (e >= TEXT_S && !logoShown) {
+        logoShown = true;
+        logoEl.style.transition = 'opacity .4s cubic-bezier(.22,1,.36,1)';
+        logoEl.style.opacity = '1';
+      }
+      if (e >= FADE_S) {
+        splash.style.opacity = String(Math.max(0, 1-(e-FADE_S)/FADE));
+        if (e-FADE_S >= FADE) { done=true; splash.className='gone'; return; }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+})();
 </script>
 </body>
 </html>

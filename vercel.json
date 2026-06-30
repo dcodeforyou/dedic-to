@@ -3,9 +3,11 @@
     "api/search.js": { "maxDuration": 10 }
   },
   "rewrites": [
+    { "source": "/for/:hash", "destination": "/for-send.html?h=:hash" },
     { "source": "/for-send", "destination": "/for-send.html" },
     { "source": "/for-inbox", "destination": "/for-inbox.html" },
     { "source": "/for", "destination": "/for.html" },
+    { "source": "/support", "destination": "/support.html" },
     { "source": "/", "destination": "/create.html" }
   ]
 }

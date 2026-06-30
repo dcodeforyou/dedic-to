@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Gen Z hot coffee sipper</title>
+  <desc id="desc">A handle-free espresso-brown hot-drink cup with a brushed-steel sip lid, steam, and a playful wavy inlay.</desc>
+
+  <defs>
+    <clipPath id="cup-clip">
+      <path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Separate animation target: gently float and fade this group. -->
+  <g id="steam" fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round">
+    <path d="M212 92c-24-23 22-31-1-57"/>
+    <path d="M263 91c-24-23 22-31-1-57"/>
+    <path d="M314 92c-24-23 22-31-1-57"/>
+  </g>
+
+  <!-- Separate animation target: small vertical bounce or lid-pop rotation. -->
+  <g id="lid">
+    <path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/>
+    <rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/>
+    <path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/>
+    <rect x="168" y="145" width="176" height="13" rx="6.5" fill="#5A4033"/>
+  </g>
+
+  <!-- Separate animation target: subtle squash, tilt, or entrance motion. -->
+  <g id="cup">
+    <path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/>
+
+    <path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z"
+          fill="#BEC5C8" clip-path="url(#cup-clip)"/>
+
+    <path d="M146 357c33-19 63-15 92 11 40 36 81 38 123 5l-5 57c-38 24-77 19-114-13-30-27-60-29-92-9z"
+          fill="#BEC5C8" opacity=".34" clip-path="url(#cup-clip)"/>
+
+    <path d="M158 179h21l-17 239c-1 15 5 27 18 36-20-3-30-13-32-32z"
+          fill="#BEC5C8" opacity=".23" clip-path="url(#cup-clip)"/>
+    <path d="M337 177h16l-9 112c-6-1-12 0-18 2z"
+          fill="#BEC5C8" opacity=".4" clip-path="url(#cup-clip)"/>
+
+    <g id="sparkle" fill="#BEC5C8">
+      <path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z"/>
+      <circle cx="292" cy="251" r="7"/>
+    </g>
+  </g>
+</svg>
