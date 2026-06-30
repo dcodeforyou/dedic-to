@@ -1394,7 +1394,7 @@ async function _getPshCanvas() {
   return generateInviteCard(_pshRow.display_name, _pshCardUrl, _pshDisplayUrl);
 }
 async function _getPshVideoBlob() {
-  if (_pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined')
+  if (isNativeApp() && _pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined')
     return generateDedicationVideo(_pshDed);
   return null;
 }
