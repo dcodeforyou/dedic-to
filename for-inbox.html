@@ -1187,9 +1187,9 @@ function renderInbox(pageRow, dedications) {
 
   // Sign out
   document.getElementById('btn-sign-out').addEventListener('click', async () => {
-    if (localStorage.getItem('dedic-test-session')) {
-      localStorage.removeItem('dedic-test-session');
-      localStorage.removeItem('dedic-test-dedications');
+    if (localStorage.getItem('__dx')) {
+      localStorage.removeItem('__dx');
+      localStorage.removeItem('__dxd');
     } else {
       await sb.auth.signOut();
     }
@@ -1309,11 +1309,10 @@ function renderInbox(pageRow, dedications) {
 ═══════════════════════════════════════════════════════════════════════════ */
 (async function init() {
   try {
-    // ── TEST MODE ────────────────────────────────────────────────
-    const testRaw = localStorage.getItem('dedic-test-session');
+    const testRaw = localStorage.getItem('__dx');
     if (testRaw) {
       const testSession = JSON.parse(testRaw);
-      const testDeds    = JSON.parse(localStorage.getItem('dedic-test-dedications') || '[]');
+      const testDeds    = JSON.parse(localStorage.getItem('__dxd') || '[]');
       renderInbox(
         { display_name: testSession.display_name, share_hash: testSession.share_hash, _test: true },
         testDeds,

@@ -1046,8 +1046,7 @@ document.getElementById('send-btn').addEventListener('click', async () => {
 
   const sendMsg = app.message || null;
 
-  // ── TEST MODE: save to localStorage ─────────────────────────
-  const testRaw = localStorage.getItem('dedic-test-session');
+  const testRaw = localStorage.getItem('__dx');
   if (testRaw) {
     const newDed = {
       id:           Date.now().toString(),
@@ -1061,9 +1060,9 @@ document.getElementById('send-btn').addEventListener('click', async () => {
       message:      sendMsg,
       created_at:   new Date().toISOString(),
     };
-    const existing = JSON.parse(localStorage.getItem('dedic-test-dedications') || '[]');
+    const existing = JSON.parse(localStorage.getItem('__dxd') || '[]');
     existing.unshift(newDed);
-    localStorage.setItem('dedic-test-dedications', JSON.stringify(existing));
+    localStorage.setItem('__dxd', JSON.stringify(existing));
     showView('view-confirm'); showCoffeeToast();
     return;
   }
@@ -1115,8 +1114,7 @@ async function initPage() {
 
   pageHash = hash;
 
-  // ── TEST MODE: check if hash matches test session ────────────
-  const testRaw = localStorage.getItem('dedic-test-session');
+  const testRaw = localStorage.getItem('__dx');
   if (testRaw) {
     try {
       const testSession = JSON.parse(testRaw);

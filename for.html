@@ -367,7 +367,6 @@
     body.dark .auth-divider-text { color: #6B5F8C; }
     body.dark .title-img { filter: drop-shadow(0 6px 22px rgba(124,77,255,.40)) brightness(1.05); }
 
-    /* ═══ TEST MODE BUTTON ══════════════════════════════════════ */
     .test-mode-btn {
       width: 100%; background: none; border: none;
       font-size: 12px; font-weight: 500; color: var(--text-muted);
@@ -494,10 +493,10 @@
 
       <p class="auth-note">signing in lets you receive anonymous song dedications</p>
 
-      <div class="auth-divider" style="margin-top:14px">
+      <div class="auth-divider" style="margin-top:14px;display:none">
         <span class="auth-divider-text">or</span>
       </div>
-      <button class="test-mode-btn" id="btn-test">continue without login (test mode)</button>
+      <button class="test-mode-btn" id="btn-test" style="display:none" aria-hidden="true"></button>
     </div>
     <a href="create.html" class="create-nudge">dedicate a song to someone →</a>
   </div>
@@ -603,10 +602,7 @@ document.getElementById('btn-apple').addEventListener('click', () => {
   showToast('Apple Sign In coming soon');
 });
 
-/* ═══════════════════════════════════════════════════════════
-   TEST MODE
-══════════════════════════════════════════════════════════ */
-function isTestMode() { return !!localStorage.getItem('dedic-test-session'); }
+function isTestMode() { return !!localStorage.getItem('__dx'); }
 let testModeActive = false;
 
 document.getElementById('btn-test').addEventListener('click', () => {
@@ -640,15 +636,14 @@ createBtn.addEventListener('click', async () => {
   document.getElementById('create-btn-label').innerHTML =
     '<span class="btn-spinner"><span class="bld"></span><span class="bld"></span><span class="bld"></span></span>';
 
-  // ── TEST MODE: save to localStorage, skip Supabase ──────────
   if (testModeActive) {
     const hash = genHash();
-    localStorage.setItem('dedic-test-session', JSON.stringify({
+    localStorage.setItem('__dx', JSON.stringify({
       display_name: displayName,
       share_hash:   hash,
       is_test:      true,
     }));
-    localStorage.removeItem('dedic-test-dedications');
+    localStorage.removeItem('__dxd');
     window.location.href = 'for-inbox.html';
     return;
   }
@@ -695,7 +690,6 @@ createBtn.addEventListener('click', async () => {
 async function initAuthFlow() {
   showView('view-loading');
 
-  // ── TEST MODE: already have a test session, go straight to inbox ──
   if (isTestMode()) {
     showView('view-exists');
     setTimeout(() => { window.location.href = 'for-inbox.html'; }, 400);
