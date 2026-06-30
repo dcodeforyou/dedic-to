@@ -1103,7 +1103,10 @@ document.getElementById('confirm-again').addEventListener('click', () => {
 //  PAGE INIT — read hash → fetch receiver page → show UI
 // ════════════════════════════════════════════════════════════
 async function initPage() {
-  const hash = new URLSearchParams(location.search).get('h');
+  let hash = new URLSearchParams(location.search).get('h');
+  if (!hash && location.pathname.startsWith('/for/')) {
+    hash = location.pathname.slice('/for/'.length);
+  }
 
   if (!hash) {
     document.getElementById('error-title').textContent = 'invalid link';
