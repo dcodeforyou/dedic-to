@@ -1371,7 +1371,7 @@ function openPlatShare(pageRow, cardUrl, displayUrl) {
 function openDedShare(ded, userCardUrl) {
   _pshMode = 'ded';
   _pshDed = ded; _pshCardUrl = userCardUrl; _pshRow = null;
-  _updatePshBadges(!!(ded.preview_url && typeof MediaRecorder !== 'undefined'));
+  _updatePshBadges(isNativeApp() && !!(ded.preview_url && typeof MediaRecorder !== 'undefined'));
   document.getElementById('psh-scrim').classList.add('show');
   document.getElementById('psh-panel').classList.add('show');
 }
