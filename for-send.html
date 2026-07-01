@@ -38,7 +38,7 @@
     .view.active { display: block; }
 
     /* ═══ PAGE LAYOUT ══════════════════════════════════════════ */
-    .page { display: flex; flex-direction: column; align-items: center; padding: 52px 22px 100px; min-height: 100vh; }
+    .page { display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 52px) 22px calc(env(safe-area-inset-bottom, 0px) + 80px); min-height: 100vh; }
     .page.center { justify-content: center; height: 100vh; padding-top: 32px; padding-bottom: 32px; }
 
     /* ═══ TITLE ════════════════════════════════════════════════ */
@@ -229,38 +229,19 @@
     #sticker-overlay { position: fixed; inset: 0; z-index: 199; background: rgba(10,5,30,.22); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); display: none; }
     #sticker-overlay.show { display: block; }
 
-    /* ═══ THEME TOGGLE ══════════════════════════════════════════ */
-    #theme-toggle {
-      position: fixed; top: 16px; right: 16px; z-index: 400;
-      width: 56px; height: 30px; background: none; border: none; padding: 0;
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
-    }
-    .tt-track {
-      width: 56px; height: 30px; border-radius: 15px;
-      background: rgba(210,195,245,.32); border: 1.5px solid rgba(180,160,225,.44);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      position: relative; transition: background .4s, border-color .4s, box-shadow .4s;
-    }
-    body.dark .tt-track {
-      background: rgba(13,10,26,.72); border-color: rgba(190,255,41,.38);
-      box-shadow: 0 0 14px rgba(190,255,41,.22), inset 0 0 10px rgba(124,77,255,.14);
-    }
-    .tt-thumb {
-      position: absolute; top: 4px; left: 4px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.18);
-      display: flex; align-items: center; justify-content: center; color: #7C4DFF;
-      transition: transform .45s cubic-bezier(.34,1.56,.64,1), background .35s, box-shadow .35s, color .35s;
-    }
-    body.dark .tt-thumb {
-      transform: translateX(26px); background: #BEFF29; color: #0D0A18;
-      box-shadow: 0 0 12px rgba(190,255,41,.6), 0 2px 6px rgba(0,0,0,.2);
-    }
-    .tt-thumb svg { width: 11px; height: 11px; flex-shrink: 0; }
-    .tt-moon { display: none; } .tt-sun { display: block; }
-    body.dark .tt-moon { display: block; } body.dark .tt-sun { display: none; }
-    @keyframes tt-click { 0%,100%{transform:scale(1)} 45%{transform:scale(.92)} }
-    #theme-toggle:active .tt-track { animation: tt-click .18s ease; }
+    /* ── Theme toggle (bottom-left) + Coffee (bottom-right) ─────── */
+    #theme-toggle { position:fixed; bottom:calc(env(safe-area-inset-bottom, 0px) + 22px); left:16px; z-index:500; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.88); border:1.5px solid rgba(180,160,225,.40); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); display:flex; align-items:center; justify-content:center; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:transform .15s,background .25s,border-color .25s; box-shadow:0 2px 12px rgba(0,0,0,.10); padding:0; }
+    body.dark #theme-toggle { background:rgba(20,14,42,.88); border-color:rgba(190,255,41,.25); box-shadow:0 0 14px rgba(190,255,41,.14),0 2px 12px rgba(0,0,0,.3); }
+    #theme-toggle:active { transform:scale(.88); }
+    #theme-toggle svg { width:16px; height:16px; flex-shrink:0; }
+    .tt-moon { display:block; color:#7C4DFF; }
+    .tt-sun { display:none; color:#BEFF29; }
+    body.dark .tt-moon { display:none; }
+    body.dark .tt-sun { display:block; }
+    .coffee-float { position:fixed; bottom:calc(env(safe-area-inset-bottom, 0px) + 22px); right:16px; z-index:500; display:flex; align-items:center; overflow:visible; background:none; border:none; padding:0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .coffee-float svg { width:40px; height:40px; animation:cfGlow 3s ease-in-out infinite; transition:filter .3s; }
+    .coffee-float:hover svg { filter:drop-shadow(0 0 14px rgba(255,255,255,.7)); animation:none; }
+    .coffee-float:active svg { transform:scale(.90); animation:none; }
 
     /* ═══ DARK THEME ════════════════════════════════════════════ */
     body.dark {
@@ -339,15 +320,7 @@
     body.dark .stp-cancel { color: #6B5F8C; }
     body.dark .stp-cancel:hover { color: #B0A0D8; }
 
-    /* ═══ COFFEE FLOAT ═════════════════════════════════════════ */
-    .coffee-float { position:fixed; bottom:24px; right:20px; z-index:500; cursor:pointer; -webkit-tap-highlight-color:transparent; display:flex; align-items:center; overflow:visible; }
-    .coffee-float svg { width:40px; height:40px; animation:cfGlow 3s ease-in-out infinite; transition:filter .3s; }
-    .coffee-float:hover svg { filter:drop-shadow(0 0 14px rgba(255,255,255,.7)); animation:none; }
-    .coffee-float:active svg { transform:scale(.92); animation:none; }
     @keyframes cfGlow{0%,100%{filter:drop-shadow(0 2px 10px rgba(255,255,255,.22)) drop-shadow(0 0 5px rgba(255,245,225,.15))}50%{filter:drop-shadow(0 2px 18px rgba(255,255,255,.48)) drop-shadow(0 0 10px rgba(255,245,225,.30))}}
-    .cf-tip { font-size:11px; font-weight:700; font-family:var(--font); color:var(--text-sec); white-space:nowrap; background:rgba(255,255,255,.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(180,160,225,.30); border-radius:20px; padding:5px 11px; margin-right:8px; opacity:0; transform:translateX(6px); transition:opacity .2s,transform .2s; pointer-events:none; }
-    body.dark .cf-tip { background:rgba(18,10,38,.90); color:#B0A0D8; border-color:rgba(124,77,255,.25); }
-    .coffee-float:hover .cf-tip { opacity:1; transform:translateX(0); }
     /* ═══ COFFEE TOAST ══════════════════════════════════════════ */
     .coffee-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(110px); z-index:600; display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.92); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1.5px solid rgba(180,160,225,.35); border-radius:50px; padding:11px 14px 11px 13px; box-shadow:0 8px 32px rgba(124,77,255,.18); transition:transform .45s cubic-bezier(.23,1,.32,1),opacity .45s; opacity:0; pointer-events:none; max-width:calc(100vw - 48px); width:max-content; }
     body.dark .coffee-toast { background:rgba(18,10,38,.92); border-color:rgba(124,77,255,.28); }
@@ -362,7 +335,7 @@
 
     /* ═══ DESKTOP ════════════════════════════════════════════════ */
     @media (min-width: 640px) {
-      .page { padding: 76px 40px 100px; }
+      .page { padding: calc(env(safe-area-inset-top, 0px) + 76px) 40px calc(env(safe-area-inset-bottom, 0px) + 80px); }
       .search-popup {
         max-width: 580px; left: 50%; right: auto; bottom: auto; top: 50%;
         border-radius: 24px;
@@ -496,50 +469,41 @@
       <div class="confirm-title">dedication sent anonymously</div>
       <div class="confirm-sub">they'll never know it was you</div>
       <button class="confirm-again-btn" id="confirm-again">dedicate another →</button>
-      <a class="confirm-own-link" href="/for">want your own link?</a>
+      <a class="confirm-own-link" href="for.html">want your own link?</a>
     </div>
   </div>
 </div>
 
-<!-- Coffee float -->
-<div class="coffee-float" id="coffee-float">
-  <div class="cf-tip">support dedic.to</div>
-  <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><clipPath id="gsf-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs>
-    <g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round">
-      <path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/>
-    </g>
-    <path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/>
-    <rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/>
-    <path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/>
-    <rect x="168" y="145" width="176" height="13" rx="6.5" fill="#5A4033"/>
-    <path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/>
-    <path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gsf-clip)"/>
-    <path d="M146 357c33-19 63-15 92 11 40 36 81 38 123 5l-5 57c-38 24-77 19-114-13-30-27-60-29-92-9z" fill="#BEC5C8" opacity=".34" clip-path="url(#gsf-clip)"/>
-    <path d="M158 179h21l-17 239c-1 15 5 27 18 36-20-3-30-13-32-32z" fill="#BEC5C8" opacity=".23" clip-path="url(#gsf-clip)"/>
-    <path d="M337 177h16l-9 112c-6-1-12 0-18 2z" fill="#BEC5C8" opacity=".4" clip-path="url(#gsf-clip)"/>
-    <path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/>
-    <circle cx="292" cy="251" r="7" fill="#BEC5C8"/>
-  </svg>
-</div>
+<button id="theme-toggle" aria-label="Toggle theme">
+  <svg class="tt-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
+</button>
+
+<button class="coffee-float" id="coffee-float" aria-label="Support dedic.to">
+    <svg width="40" height="40" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs><clipPath id="gsf-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs>
+      <g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round"><path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/></g>
+      <path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/>
+      <rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/>
+      <path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/>
+      <rect x="168" y="145" width="176" height="13" rx="6.5" fill="#5A4033"/>
+      <path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/>
+      <path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gsf-clip)"/>
+      <path d="M146 357c33-19 63-15 92 11 40 36 81 38 123 5l-5 57c-38 24-77 19-114-13-30-27-60-29-92-9z" fill="#BEC5C8" opacity=".34" clip-path="url(#gsf-clip)"/>
+      <path d="M158 179h21l-17 239c-1 15 5 27 18 36-20-3-30-13-32-32z" fill="#BEC5C8" opacity=".23" clip-path="url(#gsf-clip)"/>
+      <path d="M337 177h16l-9 112c-6-1-12 0-18 2z" fill="#BEC5C8" opacity=".4" clip-path="url(#gsf-clip)"/>
+      <path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/>
+      <circle cx="292" cy="251" r="7" fill="#BEC5C8"/>
+    </svg>
+</button>
 
 <!-- Coffee toast -->
 <div class="coffee-toast" id="coffee-toast">
   <span class="ct-cup"><svg width="20" height="20" viewBox="0 0 512 512" fill="none"><defs><clipPath id="gst-clip"><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z"/></clipPath></defs><g fill="none" stroke="#BEC5C8" stroke-width="13" stroke-linecap="round"><path d="M212 92c-24-23 22-31-1-57"/><path d="M263 91c-24-23 22-31-1-57"/><path d="M314 92c-24-23 22-31-1-57"/></g><path d="M144 127h224l23 31c6 8 0 20-10 20H131c-10 0-16-12-10-20z" fill="#BEC5C8"/><rect x="145" y="111" width="222" height="34" rx="17" fill="#5A4033"/><path d="M292 111h58l13 17h-71z" fill="#BEC5C8"/><path d="M129 162h254l-23 264c-2 22-17 34-39 34H191c-22 0-37-12-39-34z" fill="#5A4033"/><path d="M111 276c47-34 89-32 127 3 39 36 82 36 130-2 19-15 38-21 58-18v88c-24-2-46 6-66 23-43 36-84 35-124-2-38-35-78-36-121-4z" fill="#BEC5C8" clip-path="url(#gst-clip)"/><path d="M213 225c21 4 31 14 35 36 4-22 14-32 35-36-21-4-31-14-35-36-4 22-14 32-35 36z" fill="#BEC5C8"/></svg></span>
   <span class="ct-text">made your day a little better?</span>
-  <a class="ct-link" href="/support">support us</a>
+  <a class="ct-link" href="support.html">support us</a>
   <button class="ct-close" onclick="hideCoffeeToast()">✕</button>
 </div>
-
-<!-- Theme toggle -->
-<button id="theme-toggle" aria-label="Toggle dark mode">
-  <div class="tt-track">
-    <div class="tt-thumb">
-      <svg class="tt-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
-    </div>
-  </div>
-</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -711,7 +675,6 @@ function bgTick(now){
     bgCtx.fillRect(px.x,px.y,PX,PX);
   }
   for(const s of stickerPixels){
-    applySpring(s);
     if(!s.loaded)continue;
     const t=((now-s.t0)%s.period)/s.period;
     const op=s.minOp+((Math.sin(t*Math.PI*2+s.phase)+1)*.5)*(s.maxOp-s.minOp);
@@ -1068,19 +1031,38 @@ document.getElementById('send-btn').addEventListener('click', async () => {
     return;
   }
 
-  // ── REAL MODE: Supabase insert ────────────────────────────────
-  const { error } = await sb.from('anonymous_dedications').insert({
-    page_hash:     pageHash,
-    track_name:    app.song.trackName,
-    artist_name:   app.song.artistName,
-    artwork_url:   app.song.artworkUrlHQ || app.song.artworkUrl100,
-    preview_url:   app.song.previewUrl || null,
-    clip_start:    0,
-    clip_duration: 15,
-    message:       sendMsg,
-  });
+  // ── REAL MODE: send via API (includes moderation) ────────────
+  let sendError = null;
+  try {
+    const sendRes = await fetch('https://dedic.to/api/send-dedication', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page_hash:     pageHash,
+        track_name:    app.song.trackName,
+        artist_name:   app.song.artistName,
+        artwork_url:   app.song.artworkUrlHQ || app.song.artworkUrl100,
+        preview_url:   app.song.previewUrl || null,
+        clip_start:    0,
+        clip_duration: 15,
+        message:       sendMsg,
+      }),
+    });
+    if (!sendRes.ok) {
+      const body = await sendRes.json().catch(() => ({}));
+      sendError = body.error || 'send_failed';
+    }
+  } catch (e) {
+    sendError = 'network_error';
+  }
 
-  if (error) {
+  if (sendError === 'message_flagged') {
+    errEl.textContent = 'couldn\'t send that message — try rewording it';
+    errEl.classList.add('show');
+    btn.disabled = false; btn.textContent = 'send anonymously →';
+    return;
+  }
+  if (sendError) {
     errEl.classList.add('show');
     btn.disabled = false; btn.textContent = 'send anonymously →';
     return;
@@ -1161,7 +1143,7 @@ initPage();
 // ════════════════════════════════════════════════════════════
 //  COFFEE FLOAT + TOAST
 // ════════════════════════════════════════════════════════════
-document.getElementById('coffee-float').addEventListener('click', () => window.open('/support', '_blank'));
+document.getElementById('coffee-float').addEventListener('click', () => { if (isNativeApp()) { window.location.href = 'support.html'; return; } window.open('/support', '_blank'); });
 function showCoffeeToast() {
   if (sessionStorage.getItem('dedic-coffee')) return;
   sessionStorage.setItem('dedic-coffee', '1');
@@ -1273,5 +1255,9 @@ function hideCoffeeToast() {
   });
 })();
 </script>
+<div style="position:fixed;bottom:6px;left:50%;transform:translateX(-50%);z-index:1;display:flex;gap:10px;pointer-events:auto;">
+  <a href="privacy.html" style="font-size:9px;font-family:sans-serif;color:rgba(124,77,255,.18);text-decoration:none;letter-spacing:.04em;">privacy</a>
+  <a href="terms.html"   style="font-size:9px;font-family:sans-serif;color:rgba(124,77,255,.18);text-decoration:none;letter-spacing:.04em;">terms</a>
+</div>
 </body>
 </html>
