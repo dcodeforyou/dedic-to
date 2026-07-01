@@ -591,9 +591,55 @@ function showToast(msg) {
    AUTH BUTTONS
 ══════════════════════════════════════════════════════════ */
 function supabaseReady() { return !SUPABASE_URL.includes('YOUR_PROJECT'); }
+function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.() || navigator.userAgent.includes('dedic-native')); }
 
-document.getElementById('btn-google').addEventListener('click', () => {
+// Native deep link listener — handles OAuth callback from SFSafariViewController
+function setupNativeOAuthListener() {
+  if (!isNativeApp()) return;
+  window.Capacitor.Plugins.App.addListener('appUrlOpen', async ({ url }) => {
+    if (!url.startsWith('to.dedic.app://')) return;
+    try { await window.Capacitor.Plugins.Browser.close(); } catch {}
+    const query = url.includes('?') ? url.split('?')[1].split('#')[0] : '';
+    const hash  = url.includes('#') ? url.split('#')[1] : '';
+    const code  = new URLSearchParams(query).get('code');
+    if (code) {
+      const { data, error } = await sb.auth.exchangeCodeForSession(code);
+      if (!error && data?.session) { afterSignIn(data.session); return; }
+    }
+    // Implicit flow fallback
+    const access_token  = new URLSearchParams(hash).get('access_token');
+    const refresh_token = new URLSearchParams(hash).get('refresh_token');
+    if (access_token && refresh_token) {
+      const { data, error } = await sb.auth.setSession({ access_token, refresh_token });
+      if (!error && data?.session) { afterSignIn(data.session); return; }
+    }
+    showToast('sign in failed — please try again');
+    showView('view-auth');
+  });
+}
+
+async function afterSignIn(session) {
+  const { data: rows, error } = await sb.from('receiver_pages').select('id').eq('user_id', session.user.id).limit(1);
+  if (error) { showToast('could not load your profile — please refresh'); showView('view-auth'); return; }
+  if (rows && rows.length > 0) {
+    showView('view-exists');
+    setTimeout(() => { window.location.href = isNativeApp() ? 'for-inbox.html' : '/inbox'; }, 600);
+  } else {
+    showView('view-setup');
+    document.getElementById('display-name-input')?.focus();
+  }
+}
+
+document.getElementById('btn-google').addEventListener('click', async () => {
   if (!supabaseReady()) { showToast('supabase not configured yet — use test mode below'); return; }
+  if (isNativeApp()) {
+    const { data, error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: 'to.dedic.app://', skipBrowserRedirect: true }
+    });
+    if (data?.url) await window.Capacitor.Plugins.Browser.open({ url: data.url, presentationStyle: 'popover' });
+    return;
+  }
   if (location.protocol === 'file:') { showToast('open via http://localhost to use OAuth'); return; }
   sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
 });
@@ -723,13 +769,14 @@ async function initAuthFlow() {
   if (rows && rows.length > 0) {
     // Page already exists
     showView('view-exists');
-    setTimeout(() => { window.location.href = '/inbox'; }, 600);
+    setTimeout(() => { window.location.href = isNativeApp() ? 'for-inbox.html' : '/inbox'; }, 600);
   } else {
     showView('view-setup');
     nameInput.focus();
   }
 }
 
+setupNativeOAuthListener();
 initAuthFlow();
 
 /* ═══════════════════════════════════════════════════════════
