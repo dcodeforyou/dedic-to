@@ -1034,7 +1034,7 @@ document.getElementById('send-btn').addEventListener('click', async () => {
   // ── REAL MODE: send via API (includes moderation) ────────────
   let sendError = null;
   try {
-    const sendRes = await fetch('https://dedic.to/api/send-dedication', {
+    const sendRes = await fetch('https://www.dedic.to/api/send-dedication', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1137,6 +1137,8 @@ async function initPage() {
     showView('view-error');
   }
 }
+
+function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.() || navigator.userAgent.includes('dedic-native')); }
 
 initPage();
 
