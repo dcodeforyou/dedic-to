@@ -1689,11 +1689,11 @@ function closePlatSharePanel() {
 
 function _updatePshBadges(isVid) {
   const native = isNativeApp();
-  document.getElementById('psh-badge-insta').textContent  = isVid ? 'video + music' : native ? 'image + link' : 'image only';
-  document.getElementById('psh-badge-snap').textContent   = isVid ? 'video + link'  : native ? 'image + link' : 'image only';
+  document.getElementById('psh-badge-insta').textContent  = isVid ? 'video + link' : native ? 'image + link' : 'image only';
+  document.getElementById('psh-badge-snap').textContent   = isVid ? 'video + link' : native ? 'image + link' : 'image only';
   document.getElementById('psh-badge-tiktok').textContent = 'card only';
   document.getElementById('psh-sub').textContent = native
-    ? (isVid ? 'share your dedication with music' : 'share your dedication card')
+    ? (isVid ? 'music video drops in their story with a tap-to-open link' : 'your card lands in their story with a tap-to-open link')
     : (isVid ? 'share your dedication with music' : 'share card · copy link to add it');
 }
 

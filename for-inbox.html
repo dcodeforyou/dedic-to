@@ -1381,10 +1381,12 @@ function closePlatShare() {
 }
 function _updatePshBadges(hasVideo) {
   const native = isNativeApp();
-  const label = hasVideo ? 'video + music' : native ? 'image + link' : 'image only';
+  const label = hasVideo ? 'video + link' : native ? 'image + link' : 'image only';
   document.querySelectorAll('.psh-plat-badge:not(.psh-plat-badge--dim)').forEach(b => b.textContent = label);
   document.getElementById('psh-sub').textContent = native
-    ? 'your card lands in their story with a tap-to-open link'
+    ? (_pshMode === 'ded'
+        ? (hasVideo ? 'music video drops in their story with a tap-to-open link' : 'your dedication card lands with a tap-to-open link')
+        : 'your invite card lands in their story with a tap-to-open link')
     : (hasVideo ? 'share your dedication with music' : 'share card · copy link to add it');
 }
 function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.() || navigator.userAgent.includes('dedic-native')); }
