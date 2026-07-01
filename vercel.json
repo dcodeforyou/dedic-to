@@ -1,6 +1,7 @@
 {
   "functions": {
-    "api/search.js": { "maxDuration": 10 }
+    "api/search.js":          { "maxDuration": 10 },
+    "api/send-dedication.js": { "maxDuration": 15 }
   },
   "rewrites": [
     { "source": "/for/:hash", "destination": "/for-send.html?h=:hash" },
