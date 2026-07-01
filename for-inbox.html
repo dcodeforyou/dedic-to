@@ -1387,7 +1387,7 @@ function _updatePshBadges(hasVideo) {
     ? 'your card lands in their story with a tap-to-open link'
     : (hasVideo ? 'share your dedication with music' : 'share card · copy link to add it');
 }
-function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.()); }
+function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.() || navigator.userAgent.includes('dedic-native')); }
 
 async function _getPshCanvas() {
   if (_pshMode === 'ded') return generateStoryCard(_pshDed);
