@@ -22,7 +22,10 @@ module.exports = async function handler(req, res) {
   if (!page_hash || !track_name) return res.status(400).json({ error: 'missing_fields' });
 
   // ── Moderation ────────────────────────────────────────────────
-  if (message && message.trim() && OPENAI_KEY) {
+  if (message && message.trim()) {
+    if (!OPENAI_KEY) {
+      return res.status(500).json({ error: 'moderation_unavailable' });
+    }
     try {
       const modRes = await fetch('https://api.openai.com/v1/moderations', {
         method: 'POST',
@@ -30,16 +33,24 @@ module.exports = async function handler(req, res) {
         body: JSON.stringify({ input: message }),
         signal: AbortSignal.timeout(5000),
       });
-      if (modRes.ok) {
-        const { results } = await modRes.json();
-        const scores = results?.[0]?.category_scores || {};
-        for (const [cat, threshold] of Object.entries(BLOCK_IF)) {
-          if ((scores[cat] || 0) > threshold) {
-            return res.status(422).json({ error: 'message_flagged' });
-          }
-        }
+      if (!modRes.ok) {
+        return res.status(500).json({ error: 'moderation_unavailable' });
       }
-    } catch {}
+      const { results } = await modRes.json();
+      const result = results?.[0];
+      const scores = result?.category_scores || {};
+      // block if OpenAI's own flagged=true OR any serious category exceeds threshold
+      const blocked =
+        result?.flagged === true ||
+        (scores['harassment/threatening'] || 0) > 0.55 ||
+        (scores['harassment']             || 0) > 0.80 ||
+        (scores['hate/threatening']       || 0) > 0.55 ||
+        (scores['self-harm/intent']       || 0) > 0.70 ||
+        (scores['violence/graphic']       || 0) > 0.75;
+      if (blocked) return res.status(422).json({ error: 'message_flagged' });
+    } catch {
+      return res.status(500).json({ error: 'moderation_unavailable' });
+    }
   }
 
   // ── Insert via Supabase REST (no npm package needed) ──────────
