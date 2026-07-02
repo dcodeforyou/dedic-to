@@ -568,6 +568,26 @@
     .pct--active { border-color:#7C4DFF; transform:scale(1.18); }
     body.dark .pct--light { box-shadow:inset 0 0 0 1px rgba(196,172,255,.4); }
     body.dark .pct--active { border-color:#BEFF29; }
+    /* ═══ STEPS GUIDE ═══════════════════════════════════════ */
+    .sg-scrim { position:fixed; inset:0; z-index:800; background:rgba(0,0,0,0); pointer-events:none; transition:background .3s; }
+    .sg-scrim.show { background:rgba(0,0,0,.52); pointer-events:all; }
+    .sg-panel { position:fixed; bottom:0; left:0; right:0; z-index:801; background:rgba(255,255,255,.97); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border-radius:24px 24px 0 0; padding:0 22px max(env(safe-area-inset-bottom,0px),32px); transform:translateY(100%); transition:transform .35s cubic-bezier(.32,1,.32,1); max-width:480px; margin:0 auto; }
+    .sg-panel.show { transform:translateY(0); }
+    .sg-handle { width:36px; height:4px; border-radius:2px; background:rgba(0,0,0,.10); margin:14px auto 22px; }
+    .sg-copied { display:inline-flex; align-items:center; gap:7px; background:rgba(0,200,160,.10); border:1.5px solid rgba(0,200,160,.28); border-radius:50px; padding:7px 16px; font-size:13px; font-weight:700; color:#00A882; margin-bottom:18px; }
+    .sg-title { font-size:20px; font-weight:800; color:var(--text-primary,#0D0A18); letter-spacing:-.03em; margin-bottom:22px; line-height:1.25; }
+    .sg-steps { display:flex; flex-direction:column; gap:16px; margin-bottom:28px; }
+    .sg-step { display:flex; align-items:flex-start; gap:14px; }
+    .sg-num { width:26px; height:26px; border-radius:50%; background:var(--purple,#7C4DFF); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .sg-text { font-size:15px; color:var(--text-primary,#0D0A18); line-height:1.5; }
+    .sg-text b { color:var(--purple,#7C4DFF); font-weight:700; }
+    .sg-cta { width:100%; padding:16px; border-radius:50px; background:var(--purple,#7C4DFF); color:#fff; border:none; font-size:16px; font-weight:800; font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s; letter-spacing:-.02em; }
+    .sg-cta:active { opacity:.88; }
+    body.dark .sg-panel { background:rgba(12,7,28,.97); }
+    body.dark .sg-text { color:#EDE8FF; }
+    body.dark .sg-title { color:#EDE8FF; }
+    body.dark .sg-num { background:#7C4DFF; }
+
     /* Recording overlay */
     #rec-overlay { position:fixed; inset:0; z-index:700; background:rgba(8,6,18,.92); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); display:none; flex-direction:column; align-items:center; justify-content:center; gap:24px; }
     #rec-overlay.show { display:flex; animation:recFadeIn .3s ease; }
@@ -716,6 +736,16 @@
     </button>
   </div>
   <button class="psh-cancel-btn" id="psh-cancel">cancel</button>
+</div>
+
+<!-- ── STEPS GUIDE ─────────────────────────────────────── -->
+<div id="sg-scrim" class="sg-scrim"></div>
+<div id="sg-panel" class="sg-panel">
+  <div class="sg-handle"></div>
+  <div class="sg-copied">✓ link copied to clipboard</div>
+  <div class="sg-title" id="sg-title">Add your link in Instagram</div>
+  <div class="sg-steps" id="sg-steps"></div>
+  <button class="sg-cta" id="sg-cta">Got it, open Instagram →</button>
 </div>
 
 <script>
@@ -1480,10 +1510,10 @@ async function _getPshCanvas() {
 async function _shareToPlatform(platform) {
   const wantsVideo = _pshShareType === 'story' && isNativeApp() && _pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined';
   const link = _pshCardUrl || location.origin;
+  const isSocial = ['insta', 'snap', 'tiktok'].includes(platform);
 
   if (wantsVideo) {
     closePlatShare();
-    // Show recording overlay with static card preview
     const previewCanvas = await _getPshCanvas();
     const recPrev = document.getElementById('rec-preview');
     recPrev.width = previewCanvas.width; recPrev.height = previewCanvas.height;
@@ -1503,6 +1533,12 @@ async function _shareToPlatform(platform) {
       const videoBlob = await generateDedicationVideo(_pshDed, _pshCardTheme, _pshCardUrl);
       _cachedVideoBlob = videoBlob;
       clearInterval(tick); overlay.classList.remove('show');
+      // Show steps guide for social platforms after recording
+      if (isSocial) {
+        try { await navigator.clipboard.writeText(link); } catch(_) {}
+        const ok = await showStepsGuide(platform);
+        if (!ok) return;
+      }
       const ar = new FileReader(); ar.readAsDataURL(videoBlob);
       await new Promise(r => ar.onload = r);
       const b64 = ar.result.split(',')[1];
@@ -1525,16 +1561,18 @@ async function _shareToPlatform(platform) {
     return;
   }
 
-  // No video — image share (also used for tiktok and web)
+  // Image share
   closePlatShare();
+  if (isSocial) {
+    try { await navigator.clipboard.writeText(link); } catch(_) {}
+    const ok = await showStepsGuide(platform);
+    if (!ok) return;
+  }
   try {
     const canvas = await _getPshCanvas();
     const b64 = canvas.toDataURL('image/png').split(',')[1];
     if (isNativeApp()) {
       if (platform === 'insta') {
-        try { await navigator.clipboard.writeText(link); } catch(_) {}
-        showToast('link copied — add a Link sticker in Instagram');
-        await new Promise(r => setTimeout(r, 900));
         await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: b64, contentUrl: link, appId: META_APP_ID });
       } else if (platform === 'snap') {
         await window.CapacitorCustom?.shareToSnapchat({ stickerImageBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
@@ -1544,7 +1582,7 @@ async function _shareToPlatform(platform) {
         await shareCard(canvas, 'dedic-to.png');
       }
     } else {
-      await shareCard(canvas, 'dedic-to.png');
+      await navigator.share({ files: [new File([await (await fetch(canvas.toDataURL())).blob()], 'dedic-to.png', { type: 'image/png' })], title: 'dedic.to' });
     }
   } catch(e) {
     if (e?.name === 'AbortError') return;
@@ -1553,6 +1591,59 @@ async function _shareToPlatform(platform) {
     else showToast('could not share — try on a real device');
   }
 }
+
+// ── Steps guide ───────────────────────────────────────────
+const _SG = {
+  insta: {
+    title: 'Add your link in Instagram',
+    cta: 'Got it, open Instagram →',
+    steps: [
+      'Tap the <b>sticker icon</b> 😊 at the top of the screen',
+      'Tap <b>Link</b>',
+      '<b>Paste</b> — your dedication link is already copied',
+      'Place the sticker anywhere and <b>post</b> your story'
+    ]
+  },
+  snap: {
+    title: 'Add your link in Snapchat',
+    cta: 'Got it, open Snapchat →',
+    steps: [
+      'Tap the <b>paperclip icon</b> 📎 on the right side',
+      '<b>Paste</b> your link — it\'s already copied',
+      '<b>Send</b> your snap'
+    ]
+  },
+  tiktok: {
+    title: 'Add your link in TikTok',
+    cta: 'Got it, open TikTok →',
+    steps: [
+      'Tap <b>Add link</b> in the story editor',
+      '<b>Paste</b> your link — it\'s already copied',
+      '<b>Post</b> your video'
+    ]
+  }
+};
+let _sgResolve = null;
+function showStepsGuide(platform) {
+  return new Promise(resolve => {
+    _sgResolve = resolve;
+    const cfg = _SG[platform] || _SG.insta;
+    document.getElementById('sg-title').textContent = cfg.title;
+    document.getElementById('sg-cta').textContent = cfg.cta;
+    document.getElementById('sg-steps').innerHTML = cfg.steps
+      .map((s, i) => `<div class="sg-step"><div class="sg-num">${i+1}</div><div class="sg-text">${s}</div></div>`)
+      .join('');
+    document.getElementById('sg-scrim').classList.add('show');
+    document.getElementById('sg-panel').classList.add('show');
+  });
+}
+function closeStepsGuide(ok) {
+  document.getElementById('sg-scrim').classList.remove('show');
+  document.getElementById('sg-panel').classList.remove('show');
+  if (_sgResolve) { _sgResolve(ok); _sgResolve = null; }
+}
+document.getElementById('sg-cta').addEventListener('click', () => closeStepsGuide(true));
+document.getElementById('sg-scrim').addEventListener('click', () => closeStepsGuide(false));
 
 document.getElementById('psh-insta').addEventListener('click', () => _shareToPlatform('insta'));
 document.getElementById('psh-snap').addEventListener('click',  () => _shareToPlatform('snap'));

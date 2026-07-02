@@ -517,6 +517,25 @@
       #vid-share-panel.show { transform: translateX(-50%) translateY(-50%); opacity: 1; pointer-events: auto; animation: glow-cycle 4s linear infinite; }
       .vsp-handle { display: none; }
     }
+    /* ═══ STEPS GUIDE ═══════════════════════════════════════ */
+    .sg-scrim { position:fixed; inset:0; z-index:800; background:rgba(0,0,0,0); pointer-events:none; transition:background .3s; }
+    .sg-scrim.show { background:rgba(0,0,0,.52); pointer-events:all; }
+    .sg-panel { position:fixed; bottom:0; left:0; right:0; z-index:801; background:rgba(255,255,255,.97); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); border-radius:24px 24px 0 0; padding:0 22px max(env(safe-area-inset-bottom,0px),32px); transform:translateY(100%); transition:transform .35s cubic-bezier(.32,1,.32,1); max-width:480px; margin:0 auto; }
+    .sg-panel.show { transform:translateY(0); }
+    .sg-handle { width:36px; height:4px; border-radius:2px; background:rgba(0,0,0,.10); margin:14px auto 22px; }
+    .sg-copied { display:inline-flex; align-items:center; gap:7px; background:rgba(0,200,160,.10); border:1.5px solid rgba(0,200,160,.28); border-radius:50px; padding:7px 16px; font-size:13px; font-weight:700; color:#00A882; margin-bottom:18px; }
+    .sg-title { font-size:20px; font-weight:800; color:var(--text-primary,#0D0A18); letter-spacing:-.03em; margin-bottom:22px; line-height:1.25; }
+    .sg-steps { display:flex; flex-direction:column; gap:16px; margin-bottom:28px; }
+    .sg-step { display:flex; align-items:flex-start; gap:14px; }
+    .sg-num { width:26px; height:26px; border-radius:50%; background:var(--purple,#7C4DFF); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .sg-text { font-size:15px; color:var(--text-primary,#0D0A18); line-height:1.5; }
+    .sg-text b { color:var(--purple,#7C4DFF); font-weight:700; }
+    .sg-cta { width:100%; padding:16px; border-radius:50px; background:var(--purple,#7C4DFF); color:#fff; border:none; font-size:16px; font-weight:800; font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s; letter-spacing:-.02em; }
+    .sg-cta:active { opacity:.88; }
+    body.dark .sg-panel { background:rgba(12,7,28,.97); }
+    body.dark .sg-text { color:#EDE8FF; }
+    body.dark .sg-title { color:#EDE8FF; }
+
     /* ── PLATFORM SHARE PANEL ──────────────────────────────────── */
     .psh-scrim { position:fixed; inset:0; z-index:600; background:rgba(0,0,0,0); pointer-events:none; transition:background .3s; }
     .psh-scrim.show { background:rgba(0,0,0,.45); pointer-events:all; }
@@ -852,6 +871,16 @@
     </button>
   </div>
   <button class="psh-cancel-btn" id="psh-cancel">cancel</button>
+
+<!-- ── STEPS GUIDE ─────────────────────────────────────── -->
+<div id="sg-scrim" class="sg-scrim"></div>
+<div id="sg-panel" class="sg-panel">
+  <div class="sg-handle"></div>
+  <div class="sg-copied">✓ link copied to clipboard</div>
+  <div class="sg-title" id="sg-title">Add your link in Instagram</div>
+  <div class="sg-steps" id="sg-steps"></div>
+  <button class="sg-cta" id="sg-cta">Got it, open Instagram →</button>
+</div>
 </div>
 
 <script>
@@ -1675,11 +1704,21 @@ async function _getPshAssets() {
 }
 
 async function _shareToPlatform(platform) {
+  const link = shareUrl || location.origin;
+  const isSocial = ['insta', 'snap', 'tiktok'].includes(platform);
+
   closePlatSharePanel();
+
+  // Show steps guide for social platforms — copy link first, then guide, then share
+  if (isSocial) {
+    try { await navigator.clipboard.writeText(link); } catch(_) {}
+    const ok = await showStepsGuide(platform);
+    if (!ok) return;
+  }
+
   if (_pshMode === 'video' && videoBlob) showToast('preparing story…', 20000);
   const { videoBlob: vb, imageBlob: ib } = await _getPshAssets();
   const isVid = !!vb;
-  const link = shareUrl || location.origin;
 
   if (isNativeApp()) {
     const toBase64 = blob => new Promise((res, rej) => {
@@ -1689,9 +1728,6 @@ async function _shareToPlatform(platform) {
     const _plug = window.Capacitor?.Plugins?.CapacitorCustom;
     try {
       if (platform === 'insta') {
-        try { await navigator.clipboard.writeText(link); } catch(_) {}
-        showToast('link copied — add a Link sticker in Instagram');
-        await new Promise(r => setTimeout(r, 900));
         await _plug?.shareToInstagramStories({ backgroundVideoBase64: isVid ? b64 : undefined, backgroundImageBase64: isVid ? undefined : b64, contentUrl: link, appId: META_APP_ID });
       } else if (platform === 'snap') {
         await window.CapacitorCustom?.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
@@ -1706,7 +1742,7 @@ async function _shareToPlatform(platform) {
     return;
   }
 
-  // Web fallback
+  // Web fallback — navigator.share opens the iOS share sheet
   const file = vb
     ? new File([vb], 'dedic-to.' + (vb.type.includes('mp4') ? 'mp4' : 'webm'), { type: vb.type })
     : new File([ib], 'dedic-to.png', { type: 'image/png' });
@@ -1727,6 +1763,59 @@ async function _shareToPlatform(platform) {
     const a = document.createElement('a'); a.download = 'dedic-to.png'; a.href = URL.createObjectURL(ib); a.click();
   }
 }
+
+// ── Steps guide ───────────────────────────────────────────
+const _SG = {
+  insta: {
+    title: 'Add your link in Instagram',
+    cta: 'Got it, open Instagram →',
+    steps: [
+      'Tap the <b>sticker icon</b> 😊 at the top of the screen',
+      'Tap <b>Link</b>',
+      '<b>Paste</b> — your dedication link is already copied',
+      'Place the sticker anywhere and <b>post</b> your story'
+    ]
+  },
+  snap: {
+    title: 'Add your link in Snapchat',
+    cta: 'Got it, open Snapchat →',
+    steps: [
+      'Tap the <b>paperclip icon</b> 📎 on the right side',
+      '<b>Paste</b> your link — it\'s already copied',
+      '<b>Send</b> your snap'
+    ]
+  },
+  tiktok: {
+    title: 'Add your link in TikTok',
+    cta: 'Got it, open TikTok →',
+    steps: [
+      'Tap <b>Add link</b> in the story editor',
+      '<b>Paste</b> your link — it\'s already copied',
+      '<b>Post</b> your video'
+    ]
+  }
+};
+let _sgResolve = null;
+function showStepsGuide(platform) {
+  return new Promise(resolve => {
+    _sgResolve = resolve;
+    const cfg = _SG[platform] || _SG.insta;
+    document.getElementById('sg-title').textContent = cfg.title;
+    document.getElementById('sg-cta').textContent = cfg.cta;
+    document.getElementById('sg-steps').innerHTML = cfg.steps
+      .map((s, i) => `<div class="sg-step"><div class="sg-num">${i+1}</div><div class="sg-text">${s}</div></div>`)
+      .join('');
+    document.getElementById('sg-scrim').classList.add('show');
+    document.getElementById('sg-panel').classList.add('show');
+  });
+}
+function closeStepsGuide(ok) {
+  document.getElementById('sg-scrim').classList.remove('show');
+  document.getElementById('sg-panel').classList.remove('show');
+  if (_sgResolve) { _sgResolve(ok); _sgResolve = null; }
+}
+document.getElementById('sg-cta').addEventListener('click', () => closeStepsGuide(true));
+document.getElementById('sg-scrim').addEventListener('click', () => closeStepsGuide(false));
 
 document.getElementById('psh-insta').addEventListener('click', () => _shareToPlatform('insta'));
 document.getElementById('psh-snap').addEventListener('click',  () => _shareToPlatform('snap'));
