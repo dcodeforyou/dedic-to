@@ -1692,7 +1692,7 @@ async function _shareToPlatform(platform) {
         try { await navigator.clipboard.writeText(link); } catch(_) {}
         showToast('link copied — add a Link sticker in Instagram');
         await new Promise(r => setTimeout(r, 900));
-        await _plug?.shareToInstagramStories({ backgroundVideoBase64: isVid ? b64 : undefined, backgroundImageBase64: isVid ? undefined : b64, appId: META_APP_ID });
+        await _plug?.shareToInstagramStories({ backgroundVideoBase64: isVid ? b64 : undefined, backgroundImageBase64: isVid ? undefined : b64, contentUrl: link, appId: META_APP_ID });
       } else if (platform === 'snap') {
         await window.CapacitorCustom?.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
       } else if (platform === 'tiktok') {
