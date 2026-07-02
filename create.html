@@ -1499,7 +1499,6 @@ function clearResults() { $pLoading.classList.remove('show'); $pResults.innerHTM
 async function fetchSongs(q) {
   lastQuery = q;
 
-  // Each attempt is fully independent — own AbortController, own timeout, returns null on any failure
   async function attempt(url, ms, opts) {
     const ac = new AbortController();
     const t = setTimeout(() => ac.abort(), ms);
@@ -1508,15 +1507,24 @@ async function fetchSongs(q) {
       clearTimeout(t);
       if (!r.ok) return null;
       return await r.json();
-    } catch (e) {
-      clearTimeout(t);
-      return null;
-    }
+    } catch (e) { clearTimeout(t); return null; }
   }
 
   const term = encodeURIComponent(q.replace(/\s+/g, ' '));
   const itunesUrl = `https://itunes.apple.com/search?term=${term}&media=music&limit=8`;
 
+  // On native: use URLSession via Swift plugin — bypasses WKWebView cold-start entirely
+  if (isNativeApp() && window.Capacitor?.Plugins?.CapacitorCustom?.searchSongs) {
+    try {
+      const res = await window.Capacitor.Plugins.CapacitorCustom.searchSongs({ q });
+      if (lastQuery !== q) return;
+      const data = JSON.parse(res.json);
+      if (data?.results) { renderResults(data.results.map(normalizeItunesTrack)); return; }
+    } catch(_) {}
+    if (lastQuery !== q) return;
+  }
+
+  // Web fallback: race proxy + iTunes direct
   const race = () => Promise.any([
     attempt('https://www.dedic.to/api/search?q=' + term, 9000),
     attempt(itunesUrl, 9000),
@@ -1524,26 +1532,13 @@ async function fetchSongs(q) {
 
   let raceData = await race();
   if (lastQuery !== q) return;
+  if (!raceData?.results) { raceData = await race(); if (lastQuery !== q) return; }
+  if (raceData?.results) { renderResults(raceData.results.map(normalizeItunesTrack)); return; }
 
-  // WKWebView cold-start: first fetch silently fails. Retry once immediately.
-  if (!raceData?.results) {
-    raceData = await race();
-    if (lastQuery !== q) return;
-  }
-
-  if (raceData?.results) {
-    renderResults(raceData.results.map(normalizeItunesTrack));
-    return;
-  }
-
-  // Last resort: CORS proxy
   if (lastQuery !== q) return;
   const fallback = await attempt(`https://api.allorigins.win/raw?url=${encodeURIComponent(itunesUrl)}`, 9000, { credentials: 'omit' });
   if (lastQuery !== q) return;
-  if (fallback?.results) {
-    renderResults(fallback.results.map(normalizeItunesTrack));
-    return;
-  }
+  if (fallback?.results) { renderResults(fallback.results.map(normalizeItunesTrack)); return; }
 
   if (lastQuery === q) {
     $pLoading.classList.remove('show');
