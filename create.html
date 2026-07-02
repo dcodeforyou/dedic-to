@@ -1409,7 +1409,16 @@ const $selArt    = document.getElementById('popup-sel-art');
 const $selName   = document.getElementById('popup-sel-name');
 const $selArtist = document.getElementById('popup-sel-artist');
 
+let _netWarmed = false;
+function _warmNet() {
+  if (_netWarmed) return; _netWarmed = true;
+  // WKWebView drops the first cross-origin fetch after app launch.
+  // Firing a silent request now means the stack is ready before the user types.
+  const ac = new AbortController(); setTimeout(() => ac.abort(), 6000);
+  fetch('https://itunes.apple.com/search?term=a&media=music&limit=1', { signal: ac.signal }).catch(() => {});
+}
 function openPopup() {
+  _warmNet();
   $overlay.classList.add('open'); $popup.classList.add('open');
   if (app.song) { popupSong = app.song; popupArtUrl = app.artUrl; toStateB(); }
   else { toStateA(); setTimeout(() => $pInput.focus(), 340); }
@@ -1508,20 +1517,26 @@ async function fetchSongs(q) {
   const term = encodeURIComponent(q.replace(/\s+/g, ' '));
   const itunesUrl = `https://itunes.apple.com/search?term=${term}&media=music&limit=8`;
 
-  // Race the server proxy (absolute URL works in both web + native app) against
-  // the direct iTunes call — whichever replies first wins, no 10s serial wait.
-  const raceData = await Promise.any([
+  const race = () => Promise.any([
     attempt('https://www.dedic.to/api/search?q=' + term, 9000),
     attempt(itunesUrl, 9000),
   ]).catch(() => null);
 
+  let raceData = await race();
   if (lastQuery !== q) return;
+
+  // WKWebView cold-start: first fetch silently fails. Retry once immediately.
+  if (!raceData?.results) {
+    raceData = await race();
+    if (lastQuery !== q) return;
+  }
+
   if (raceData?.results) {
     renderResults(raceData.results.map(normalizeItunesTrack));
     return;
   }
 
-  // Both failed — try allorigins as last resort
+  // Last resort: CORS proxy
   if (lastQuery !== q) return;
   const fallback = await attempt(`https://api.allorigins.win/raw?url=${encodeURIComponent(itunesUrl)}`, 9000, { credentials: 'omit' });
   if (lastQuery !== q) return;
