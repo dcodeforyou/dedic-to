@@ -996,12 +996,9 @@ async function generateDedicationVideo(ded, theme='dark', linkUrl='') {
     rcx.fillStyle=pillBg;crRoundRect(rcx,pX2,pY2,pW2,pH2,pH2/2);rcx.fill();
     rcx.fillStyle=pillTxt;rcx.fillText(pt,RW/2,pY2+pH2/2+14);
     rcx.fillStyle=ctaColor;rcx.font='700 48px "Plus Jakarta Sans",sans-serif';
-    rcx.fillText('dedicate yours ↓',RW/2,RH-260);
-    const dlinkText=linkUrl?linkUrl.replace(/^https?:\/\//,''):'dedic.to';
-    rcx.fillStyle=isDark?'rgba(190,255,41,0.85)':'rgba(91,47,232,0.85)';rcx.font='700 36px "Plus Jakarta Sans",sans-serif';
-    rcx.fillText(dlinkText,RW/2,RH-195);
+    rcx.fillText('dedicate yours →',RW/2,RH-220);
     rcx.fillStyle=footerColor;rcx.font='600 30px "Plus Jakarta Sans",sans-serif';
-    rcx.fillText('dedic.to',RW/2,RH-140);
+    rcx.fillText('dedic.to',RW/2,RH-155);
     recRAF2=requestAnimationFrame(renderDedFrame);
   }
   const mimeType=getSupportedMimeType();
