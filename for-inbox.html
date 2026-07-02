@@ -1585,10 +1585,8 @@ async function _shareToPlatform(platform) {
         if (platform === 'insta') {
           await window.CapacitorCustom?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
           // Instagram has now read the background image from pasteboard; restore plain-text link so user can paste it in the link sticker
-          setTimeout(() => _copyToClipboard(link), 1500);
         } else if (platform === 'snap') {
           await window.CapacitorCustom?.shareToSnapchat({ stickerVideoBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
-          setTimeout(() => _copyToClipboard(link), 1500);
         } else if (platform === 'tiktok') {
           await window.CapacitorCustom?.shareToTikTok({ videoBase64: b64 });
         } else {
@@ -1662,11 +1660,9 @@ async function _shareToPlatform(platform) {
         const bgB64 = bgCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
         const cardB64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: bgB64, stickerImageBase64: cardB64, contentUrl: link, appId: META_APP_ID });
-        setTimeout(() => _copyToClipboard(link), 1500);
       } else if (platform === 'snap') {
         const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToSnapchat({ stickerImageBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
-        setTimeout(() => _copyToClipboard(link), 1500);
       } else if (platform === 'tiktok') {
         const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToTikTok({ imageBase64: b64 });
