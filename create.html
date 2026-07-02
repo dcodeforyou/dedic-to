@@ -1835,24 +1835,24 @@ async function _shareToPlatform(platform) {
     return;
   }
 
-  // Web fallback — navigator.share opens the iOS share sheet
+  // Web fallback — try navigator.share (works on iOS/Android), fall back to download
+  const ext = vb ? (vb.type.includes('mp4') ? 'mp4' : 'webm') : 'png';
   const file = vb
-    ? new File([vb], 'dedic-to.' + (vb.type.includes('mp4') ? 'mp4' : 'webm'), { type: vb.type })
+    ? new File([vb], `dedic-to.${ext}`, { type: vb.type })
     : new File([ib], 'dedic-to.png', { type: 'image/png' });
 
   try {
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'dedic.to — a song dedication', url: link });
-      return;
-    }
-  } catch(e) { if (e.name === 'AbortError') return; }
-
-  try {
-    await navigator.share({ title: 'dedic.to — a song dedication', url: link });
+    await navigator.share({ files: [file], title: 'dedic.to — a song dedication' });
     return;
-  } catch(e) { if (e.name === 'AbortError') return; }
+  } catch(e) {
+    if (e?.name === 'AbortError') return;
+    // share not supported or failed — fall through to download
+  }
 
-  if (vb) { downloadVideo(); } else {
+  if (vb) {
+    downloadVideo();
+    showToast('video saved — upload it to your story!');
+  } else {
     const a = document.createElement('a'); a.download = 'dedic-to.png'; a.href = URL.createObjectURL(ib); a.click();
   }
 }

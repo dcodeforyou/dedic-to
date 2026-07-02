@@ -651,6 +651,7 @@
     <span class="rec-timer" id="rec-timer">10</span>
   </div>
   <div class="rec-label">recording your story…</div>
+  <button id="rec-cancel-btn" style="margin-top:8px;background:none;border:1.5px solid rgba(255,255,255,.22);color:rgba(255,255,255,.6);border-radius:50px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;">cancel</button>
 </div>
 
 <!-- Inbox view -->
@@ -1005,14 +1006,22 @@ async function generateDedicationVideo(ded, theme='dark', linkUrl='') {
   const videoStream=recCvs.captureStream(30);
   let stream=videoStream;
   if(streamDest2){const at=streamDest2.stream.getAudioTracks()[0];if(at)stream=new MediaStream([...videoStream.getTracks(),at]);}
-  return new Promise((resolve)=>{
+  return new Promise((resolve, reject)=>{
     const chunks=[];
     const rec=new MediaRecorder(stream,mimeType?{mimeType}:{});
     rec.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
     rec.onstop=()=>{cancelAnimationFrame(recRAF2);resolve(new Blob(chunks,{type:mimeType||'video/webm'}));};
     requestAnimationFrame(renderDedFrame);
     rec.start();
-    setTimeout(()=>rec.stop(),clipDur*1000);
+    const stopTimer = setTimeout(()=>rec.stop(), clipDur*1000);
+    // Safety: if onstop never fires, unblock after clipDur+8s
+    const safetyTimer = setTimeout(()=>{
+      clearTimeout(stopTimer);
+      cancelAnimationFrame(recRAF2);
+      if(rec.state!=='inactive') try{rec.stop();}catch(_){}
+      reject(new Error('recording timeout'));
+    }, (clipDur+8)*1000);
+    rec.onstop=()=>{clearTimeout(safetyTimer);cancelAnimationFrame(recRAF2);resolve(new Blob(chunks,{type:mimeType||'video/webm'}));};
   });
 }
 
@@ -1530,7 +1539,7 @@ async function _getPshCanvas() {
 }
 
 async function _shareToPlatform(platform) {
-  const wantsVideo = _pshShareType === 'story' && isNativeApp() && _pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined';
+  const wantsVideo = _pshShareType === 'story' && _pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined';
   const link = _pshCardUrl || location.origin;
   const isSocial = ['insta', 'snap', 'tiktok'].includes(platform);
 
@@ -1551,33 +1560,56 @@ async function _shareToPlatform(platform) {
       timerEl.textContent = Math.ceil(rem);
       fillEl.style.width = `${Math.min(100, ((Date.now()-t0)/1000/dur*100)).toFixed(1)}%`;
     }, 100);
+
+    let cancelled = false;
+    const cancelBtn = document.getElementById('rec-cancel-btn');
+    const cancelHandler = () => { cancelled = true; clearInterval(tick); overlay.classList.remove('show'); };
+    cancelBtn.addEventListener('click', cancelHandler, { once: true });
+
     try {
       const videoBlob = await generateDedicationVideo(_pshDed, _pshCardTheme, _pshCardUrl);
-      _cachedVideoBlob = videoBlob;
+      cancelBtn.removeEventListener('click', cancelHandler);
       clearInterval(tick); overlay.classList.remove('show');
-      // Show steps guide for social platforms after recording
-      if (isSocial) {
-        const ok = await showStepsGuide(platform);
-        if (!ok) return;
-      }
-      const ar = new FileReader(); ar.readAsDataURL(videoBlob);
-      await new Promise(r => ar.onload = r);
-      const b64 = ar.result.split(',')[1];
-      if (platform === 'insta') {
-        await window.CapacitorCustom?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
-      } else if (platform === 'snap') {
-        await window.CapacitorCustom?.shareToSnapchat({ stickerVideoBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
-      } else if (platform === 'tiktok') {
-        await window.CapacitorCustom?.shareToTikTok({ videoBase64: b64 });
+      if (cancelled) return;
+      _cachedVideoBlob = videoBlob;
+
+      if (isNativeApp()) {
+        if (isSocial) {
+          const ok = await showStepsGuide(platform);
+          if (!ok) return;
+        }
+        const ar = new FileReader(); ar.readAsDataURL(videoBlob);
+        await new Promise(r => ar.onload = r);
+        const b64 = ar.result.split(',')[1];
+        if (platform === 'insta') {
+          await window.CapacitorCustom?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
+        } else if (platform === 'snap') {
+          await window.CapacitorCustom?.shareToSnapchat({ stickerVideoBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+        } else if (platform === 'tiktok') {
+          await window.CapacitorCustom?.shareToTikTok({ videoBase64: b64 });
+        } else {
+          await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
+        }
       } else {
-        await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
+        // Web: try native share sheet, fall back to download
+        try {
+          await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
+        } catch(e) {
+          if (e?.name === 'AbortError') return;
+          const url = URL.createObjectURL(videoBlob);
+          const a = document.createElement('a'); a.href = url; a.download = 'dedic-story.mp4'; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 30000);
+          showToast('video saved — upload it to your story!');
+        }
       }
     } catch(e) {
+      cancelBtn.removeEventListener('click', cancelHandler);
       clearInterval(tick); overlay.classList.remove('show');
-      if (e?.name === 'AbortError') return;
+      if (e?.name === 'AbortError' || cancelled) return;
       const msg = e?.message || '';
       if (msg.toLowerCase().includes('not installed')) showToast('Instagram not installed on this device');
-      else showToast('could not share — try on a real device');
+      else if (msg.includes('timeout')) showToast('recording timed out — try again');
+      else showToast('could not share — try again');
     }
     return;
   }
