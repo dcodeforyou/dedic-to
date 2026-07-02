@@ -1751,17 +1751,18 @@ async function _buildInstagramBackground(artUrl, theme) {
 }
 
 function _copyToClipboard(text) {
-  // Capacitor Clipboard plugin — most reliable in WKWebView
-  if (window.Capacitor?.Plugins?.Clipboard?.write) {
-    window.Capacitor.Plugins.Clipboard.write({ string: text }).catch(() => {});
+  // Native UIPasteboard — guaranteed to work in WKWebView, no user-gesture requirement
+  if (window.Capacitor?.Plugins?.CapacitorCustom?.copyToClipboard) {
+    window.Capacitor.Plugins.CapacitorCustom.copyToClipboard({ text }).catch(() => {});
   }
-  // execCommand fallback (must run inside user-gesture call stack)
+  // Web fallbacks
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;font-size:16px';
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;font-size:16px;-webkit-user-select:text;user-select:text';
+    ta.readOnly = true;
     document.body.appendChild(ta);
-    ta.focus(); ta.select();
+    ta.focus(); ta.setSelectionRange(0, ta.value.length);
     document.execCommand('copy');
     document.body.removeChild(ta);
   } catch(_) {}

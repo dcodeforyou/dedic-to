@@ -1094,12 +1094,9 @@ async function generateStoryCard(ded, theme='dark', linkUrl='') {
     for(const l of lines){cx.fillText(l,CARD_W/2,yPos);yPos+=56;}
   }
   cx.fillStyle=isDark?'#BEFF29':'#7C4DFF';cx.font='700 48px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('get yours ↓',CARD_W/2,CARD_H-240);
-  const displayLink = linkUrl ? linkUrl.replace(/^https?:\/\//,'') : 'dedic.to';
-  cx.fillStyle=isDark?'rgba(190,255,41,0.85)':'rgba(91,47,232,0.85)';cx.font='700 38px "Plus Jakarta Sans",sans-serif';
-  cx.fillText(displayLink,CARD_W/2,CARD_H-170);
-  cx.fillStyle=isDark?'rgba(122,111,168,0.55)':'rgba(107,96,128,0.55)';cx.font='600 30px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('dedic.to',CARD_W/2,CARD_H-110);
+  cx.fillText('get yours →',CARD_W/2,CARD_H-220);
+  cx.fillStyle=isDark?'rgba(122,111,168,0.50)':'rgba(107,96,128,0.50)';cx.font='600 30px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('dedic.to',CARD_W/2,CARD_H-152);
   return c;
 }
 
@@ -1108,62 +1105,105 @@ async function generateStoryCard(ded, theme='dark', linkUrl='') {
 ═══════════════════════════════════════════════════════════════════════════ */
 async function generateInviteCard(displayName, cardUrl, displayUrl) {
   if (!displayUrl) displayUrl = cardUrl.replace('https://','');
-  const CARD_W=1080, CARD_H=1920;
-  const c=document.createElement('canvas'); c.width=CARD_W; c.height=CARD_H;
+  const W=1080, H=1920;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
   const cx=c.getContext('2d');
 
-  // Background + pixel scatter
-  cx.fillStyle='#0D0A1A'; cx.fillRect(0,0,CARD_W,CARD_H);
-  const CPAL=[[124,77,255,.32],[91,143,232,.24],[190,255,41,.12],[196,172,255,.20],[0,200,160,.10],[255,91,173,.08]];
-  for(let i=0;i<110;i++){const col=CPAL[i%CPAL.length];
-    cx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${(col[3]*.55+Math.random()*col[3]*.45).toFixed(3)})`;
-    cx.fillRect(Math.random()*CARD_W,Math.random()*CARD_H,20,20);}
-  const glow=cx.createRadialGradient(CARD_W/2,CARD_H*0.38,0,CARD_W/2,CARD_H*0.38,CARD_W*0.82);
-  glow.addColorStop(0,'rgba(124,77,255,0.32)'); glow.addColorStop(1,'rgba(0,0,0,0)');
-  cx.fillStyle=glow; cx.fillRect(0,0,CARD_W,CARD_H);
+  // Deep background
+  cx.fillStyle='#070411'; cx.fillRect(0,0,W,H);
+
+  // Aurora blobs
+  const blobs=[
+    {x:W*0.5,y:H*0.40,r:620,c:'rgba(110,60,255,0.60)'},
+    {x:W*0.1,y:H*0.28,r:440,c:'rgba(72,110,230,0.42)'},
+    {x:W*0.88,y:H*0.55,r:380,c:'rgba(160,60,255,0.35)'},
+    {x:W*0.5,y:H*0.82,r:500,c:'rgba(80,50,200,0.28)'},
+  ];
+  for(const b of blobs){
+    const g=cx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+    g.addColorStop(0,b.c); g.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=g; cx.fillRect(0,0,W,H);
+  }
+
+  // Concentric music rings centred on visual focal point
+  const RX=W/2, RY=H*0.415;
+  for(let r=80;r<=480;r+=72){
+    cx.beginPath(); cx.arc(RX,RY,r,0,Math.PI*2);
+    cx.strokeStyle=`rgba(190,172,255,${(0.13*(1-(r-80)/480)).toFixed(3)})`;
+    cx.lineWidth=1.5; cx.stroke();
+    // Glowing dots on ring
+    const dots=Math.max(6,Math.round(r/30));
+    for(let i=0;i<dots;i++){
+      const a=(i/dots)*Math.PI*2;
+      const glow=Math.random()>0.65;
+      cx.beginPath(); cx.arc(RX+r*Math.cos(a),RY+r*Math.sin(a),glow?3:1.5,0,Math.PI*2);
+      cx.fillStyle=glow?'rgba(190,255,41,0.70)':'rgba(196,172,255,0.22)'; cx.fill();
+    }
+  }
+
+  // Centre glow
+  const cg=cx.createRadialGradient(RX,RY,0,RX,RY,90);
+  cg.addColorStop(0,'rgba(190,255,41,0.22)'); cg.addColorStop(1,'rgba(0,0,0,0)');
+  cx.fillStyle=cg; cx.fillRect(0,0,W,H);
+  cx.beginPath(); cx.arc(RX,RY,14,0,Math.PI*2);
+  cx.fillStyle='rgba(190,255,41,0.80)'; cx.fill();
 
   await document.fonts.ready;
 
-  // Title image
-  const titleImg=new Image();
-  await new Promise(res=>{titleImg.onload=res;titleImg.onerror=res;titleImg.src='dedic-me-title.svg';});
-  const tW=900, tH=Math.round(900*(334/1528));
-  if(titleImg.naturalWidth>0) cx.drawImage(titleImg,(CARD_W-tW)/2, 210, tW, tH);
+  // dedic.to logo text at top
+  cx.textAlign='center';
+  cx.fillStyle='rgba(190,255,41,0.72)'; cx.font='700 38px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('dedic.to', W/2, 148);
 
-  const yN = 210+tH+68;
+  // Name + tagline block — positioned below the ring focal area
+  const textTop = H*0.415+490+60;
 
-  // Display name
-  cx.fillStyle='#C4ACFF'; cx.font='500 52px "Plus Jakarta Sans",sans-serif'; cx.textAlign='center';
-  cx.fillText(displayName, CARD_W/2, yN);
+  // Name
+  cx.font='800 80px "Plus Jakarta Sans",sans-serif';
+  cx.fillStyle='#F5F0FF';
+  const nameLines=crWrap(cx,displayName,W-160);
+  let ny=textTop;
+  for(const l of nameLines.slice(0,2)){cx.fillText(l,W/2,ny);ny+=94;}
+
+  // Divider line
+  {
+    cx.save();
+    const dg=cx.createLinearGradient(W*0.2,0,W*0.8,0);
+    dg.addColorStop(0,'rgba(196,172,255,0)');
+    dg.addColorStop(0.5,'rgba(196,172,255,0.40)');
+    dg.addColorStop(1,'rgba(196,172,255,0)');
+    cx.strokeStyle=dg; cx.lineWidth=1.5;
+    cx.beginPath(); cx.moveTo(W*0.2,ny+24); cx.lineTo(W*0.8,ny+24); cx.stroke();
+    cx.restore();
+    ny+=68;
+  }
 
   // Tagline
-  cx.fillStyle='#F5F0FF'; cx.font='700 52px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('dedicate a song to me', CARD_W/2, yN+88);
-  cx.fillText('anonymously', CARD_W/2, yN+152);
+  cx.fillStyle='rgba(196,172,255,0.80)'; cx.font='500 46px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('dedicate a song to me', W/2, ny); ny+=62;
+  cx.fillStyle='rgba(196,172,255,0.55)'; cx.font='400 38px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('anonymously', W/2, ny); ny+=80;
 
-  // "tap to dedicate" label
-  cx.fillStyle='rgba(196,172,255,0.55)'; cx.font='400 34px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('tap the link to dedicate', CARD_W/2, yN+226);
-
-  // Link pill
-  cx.font='600 44px "Plus Jakarta Sans",sans-serif';
-  const pillW2=Math.min(cx.measureText(displayUrl).width+100, CARD_W-100);
-  const pillH2=104, pillX2=(CARD_W-pillW2)/2, pillY2=yN+290;
+  // Link pill with neon glow
+  cx.font='600 40px "Plus Jakarta Sans",sans-serif';
+  const pillText=displayUrl;
+  const pillW=Math.min(cx.measureText(pillText).width+100,W-120);
+  const pillH=92, pillX=(W-pillW)/2, pillY=ny;
   cx.save();
-  cx.shadowColor='rgba(190,255,41,0.40)'; cx.shadowBlur=64;
-  cx.fillStyle='rgba(190,255,41,0.08)';
-  crRoundRect(cx,pillX2,pillY2,pillW2,pillH2,pillH2/2); cx.fill();
+  cx.shadowColor='rgba(190,255,41,0.55)'; cx.shadowBlur=48;
+  cx.fillStyle='rgba(190,255,41,0.07)';
+  crRoundRect(cx,pillX,pillY,pillW,pillH,pillH/2); cx.fill();
   cx.restore();
-  cx.strokeStyle='rgba(190,255,41,0.65)'; cx.lineWidth=2.5;
-  crRoundRect(cx,pillX2,pillY2,pillW2,pillH2,pillH2/2); cx.stroke();
+  cx.strokeStyle='rgba(190,255,41,0.70)'; cx.lineWidth=2;
+  crRoundRect(cx,pillX,pillY,pillW,pillH,pillH/2); cx.stroke();
   cx.fillStyle='#BEFF29';
-  cx.fillText(displayUrl, CARD_W/2, pillY2+pillH2/2+16);
+  cx.fillText(pillText,W/2,pillY+pillH/2+14);
 
-  // Bottom CTA + watermark
-  cx.fillStyle='#BEFF29'; cx.font='700 52px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('get yours ↓', CARD_W/2, CARD_H-230);
-  cx.fillStyle='rgba(122,111,168,0.55)'; cx.font='600 36px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('dedic.to', CARD_W/2, CARD_H-148);
+  // Bottom CTA
+  cx.fillStyle='rgba(245,240,255,0.88)'; cx.font='700 50px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('tap the link ↑', W/2, H-190);
+  cx.fillStyle='rgba(122,111,168,0.45)'; cx.font='500 30px "Plus Jakarta Sans",sans-serif';
+  cx.fillText('dedic.to', W/2, H-132);
 
   return c;
 }
@@ -1638,15 +1678,16 @@ async function _buildInstagramBackground(artUrl, theme) {
 }
 
 function _copyToClipboard(text) {
-  if (window.Capacitor?.Plugins?.Clipboard?.write) {
-    window.Capacitor.Plugins.Clipboard.write({ string: text }).catch(() => {});
+  if (window.Capacitor?.Plugins?.CapacitorCustom?.copyToClipboard) {
+    window.Capacitor.Plugins.CapacitorCustom.copyToClipboard({ text }).catch(() => {});
   }
   try {
     const ta = document.createElement('textarea');
     ta.value = text;
-    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;font-size:16px';
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;font-size:16px;-webkit-user-select:text;user-select:text';
+    ta.readOnly = true;
     document.body.appendChild(ta);
-    ta.focus(); ta.select();
+    ta.focus(); ta.setSelectionRange(0, ta.value.length);
     document.execCommand('copy');
     document.body.removeChild(ta);
   } catch(_) {}
