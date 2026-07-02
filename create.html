@@ -1806,6 +1806,7 @@ async function _shareToPlatform(platform) {
         if (isVid) {
           b64 = await toBase64(vb);
           await _plug?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
+          setTimeout(() => _copyToClipboard(link), 1500);
         } else {
           const cardCanvas = await generateCardCanvas();
           const artUrl = app?.artUrl || null;
@@ -1813,11 +1814,13 @@ async function _shareToPlatform(platform) {
           const bgB64 = bgCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
           const cardB64 = cardCanvas.toDataURL('image/png').split(',')[1];
           await _plug?.shareToInstagramStories({ backgroundImageBase64: bgB64, stickerImageBase64: cardB64, contentUrl: link, appId: META_APP_ID });
+          setTimeout(() => _copyToClipboard(link), 1500);
         }
       } else {
         const b64 = await toBase64(vb || ib);
         if (platform === 'snap') {
           await window.CapacitorCustom?.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+          setTimeout(() => _copyToClipboard(link), 1500);
         } else if (platform === 'tiktok') {
           await window.CapacitorCustom?.shareToTikTok({ mediaBase64: b64, isVideo: isVid });
         }

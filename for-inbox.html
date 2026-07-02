@@ -553,7 +553,7 @@
     body.dark .psh-cc-label { color:#F5F0FF; }
     .psh-cc-sub { font-size:10px; color:var(--text-muted,#A89EC0); line-height:1.4; }
     /* ── Link row inside share panel ───────────────────────────────────────── */
-    .psh-link-row { display:flex; align-items:center; gap:8px; background:rgba(190,255,41,.06); border:1px solid rgba(190,255,41,.22); border-radius:12px; padding:9px 12px; margin-bottom:14px; }
+    .psh-link-row { display:flex; align-items:center; gap:8px; background:rgba(190,255,41,.06); border:1px solid rgba(190,255,41,.22); border-radius:12px; padding:9px 12px; margin-bottom:14px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
     body.dark .psh-link-row { background:rgba(190,255,41,.04); border-color:rgba(190,255,41,.18); }
     .psh-link-text { flex:1; font-size:11px; font-weight:600; color:#5B2FE8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.01em; }
     body.dark .psh-link-text { color:#BEFF29; }
@@ -683,10 +683,10 @@
   <div class="psh-handle"></div>
   <div class="psh-title" id="psh-title">share your dedication</div>
   <div class="psh-sub" id="psh-sub">choose where to share</div>
-  <!-- link row (ded mode only) -->
+  <!-- link row (ded mode only) — tap anywhere to copy -->
   <div class="psh-link-row" id="psh-link-row" style="display:none">
     <span class="psh-link-text" id="psh-link-text"></span>
-    <button class="psh-link-copy" id="psh-link-copy-btn">copy</button>
+    <span class="psh-link-copy">tap to copy</span>
   </div>
   <!-- share type choice (ded mode only) -->
   <div class="psh-choice-row" id="psh-choice-row" style="display:none">
@@ -1276,9 +1276,9 @@ function renderInbox(pageRow, dedications) {
   document.getElementById('view-loading').style.display = 'none';
   document.getElementById('view-inbox').style.display = '';
 
-  const shareLink = location.origin + '/for/' + pageRow.share_hash;
+  const shareLink = _realOrigin() + '/for/' + pageRow.share_hash;
   const cardUrl = shareLink;
-  const displayUrl = location.hostname + '/for/' + pageRow.share_hash;
+  const displayUrl = 'dedic.to/for/' + pageRow.share_hash;
 
   // Header
   document.getElementById('inbox-name-heading').textContent =
@@ -1531,6 +1531,7 @@ function _updatePshBadges() {
     : 'your invite card lands in their story with a link';
 }
 function isNativeApp() { return !!(window.Capacitor?.isNativePlatform?.() || navigator.userAgent.includes('dedic-native')); }
+function _realOrigin() { return isNativeApp() ? 'https://dedic.to' : location.origin; }
 if (isNativeApp()) window.CapacitorCustom = window.Capacitor?.Plugins?.CapacitorCustom;
 
 async function _getPshCanvas() {
@@ -1540,7 +1541,7 @@ async function _getPshCanvas() {
 
 async function _shareToPlatform(platform) {
   const wantsVideo = _pshShareType === 'story' && _pshMode === 'ded' && _pshDed?.preview_url && typeof MediaRecorder !== 'undefined';
-  const link = _pshCardUrl || location.origin;
+  const link = _pshCardUrl || _realOrigin();
   const isSocial = ['insta', 'snap', 'tiktok'].includes(platform);
 
   if (wantsVideo) {
@@ -1583,24 +1584,56 @@ async function _shareToPlatform(platform) {
         const b64 = ar.result.split(',')[1];
         if (platform === 'insta') {
           await window.CapacitorCustom?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
+          // Instagram has now read the background image from pasteboard; restore plain-text link so user can paste it in the link sticker
+          setTimeout(() => _copyToClipboard(link), 1500);
         } else if (platform === 'snap') {
           await window.CapacitorCustom?.shareToSnapchat({ stickerVideoBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+          setTimeout(() => _copyToClipboard(link), 1500);
         } else if (platform === 'tiktok') {
           await window.CapacitorCustom?.shareToTikTok({ videoBase64: b64 });
         } else {
           await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
         }
       } else {
-        // Web: try native share sheet, fall back to download
-        try {
-          await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
-        } catch(e) {
-          if (e?.name === 'AbortError') return;
-          const url = URL.createObjectURL(videoBlob);
-          const a = document.createElement('a'); a.href = url; a.download = 'dedic-story.mp4'; a.click();
-          setTimeout(() => URL.revokeObjectURL(url), 30000);
-          showToast('video saved — upload it to your story!');
-        }
+        // Web: navigator.share requires a fresh user gesture — the 15s recording expired the original tap.
+        // Show share/save buttons inside the overlay so the next tap is the gesture.
+        timerEl.textContent = '✓';
+        fillEl.style.width = '100%';
+        const recLabel = overlay.querySelector('.rec-label');
+        if (recLabel) recLabel.textContent = 'ready — what next?';
+        cancelBtn.style.display = 'none';
+        const shareReadyBtn = document.createElement('button');
+        shareReadyBtn.textContent = 'share video';
+        shareReadyBtn.style.cssText = 'background:linear-gradient(135deg,#7C4DFF,#BEFF29);color:#0D0A18;border:none;border-radius:50px;padding:14px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;';
+        const saveReadyBtn = document.createElement('button');
+        saveReadyBtn.textContent = 'save to device';
+        saveReadyBtn.style.cssText = 'background:none;border:1.5px solid rgba(255,255,255,.22);color:rgba(255,255,255,.7);border-radius:50px;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;';
+        overlay.appendChild(shareReadyBtn);
+        overlay.appendChild(saveReadyBtn);
+        const cleanupReadyBtns = () => {
+          shareReadyBtn.remove(); saveReadyBtn.remove();
+          cancelBtn.style.display = '';
+          if (recLabel) recLabel.textContent = 'recording your story…';
+        };
+        shareReadyBtn.addEventListener('click', async () => {
+          cleanupReadyBtns(); overlay.classList.remove('show');
+          try {
+            await navigator.share({ files: [new File([videoBlob], 'dedic-story.mp4', { type: videoBlob.type })], title: 'dedic.to' });
+          } catch(e) {
+            if (e?.name === 'AbortError') return;
+            const objUrl = URL.createObjectURL(videoBlob);
+            const a = document.createElement('a'); a.href = objUrl; a.download = 'dedic-story.mp4'; a.click();
+            setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
+            showToast('video saved!');
+          }
+        }, { once: true });
+        saveReadyBtn.addEventListener('click', () => {
+          cleanupReadyBtns(); overlay.classList.remove('show');
+          const objUrl = URL.createObjectURL(videoBlob);
+          const a = document.createElement('a'); a.href = objUrl; a.download = 'dedic-story.mp4'; a.click();
+          setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
+          showToast('video saved!');
+        }, { once: true });
       }
     } catch(e) {
       cancelBtn.removeEventListener('click', cancelHandler);
@@ -1629,9 +1662,11 @@ async function _shareToPlatform(platform) {
         const bgB64 = bgCanvas.toDataURL('image/jpeg', 0.88).split(',')[1];
         const cardB64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: bgB64, stickerImageBase64: cardB64, contentUrl: link, appId: META_APP_ID });
+        setTimeout(() => _copyToClipboard(link), 1500);
       } else if (platform === 'snap') {
         const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToSnapchat({ stickerImageBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+        setTimeout(() => _copyToClipboard(link), 1500);
       } else if (platform === 'tiktok') {
         const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToTikTok({ imageBase64: b64 });
@@ -1816,9 +1851,9 @@ document.getElementById('psh-choice-story').addEventListener('click', () => {
   document.getElementById('psh-choice-image').classList.remove('psh-choice-active');
   _updatePshBadges();
 });
-document.getElementById('psh-link-copy-btn').addEventListener('click', async () => {
+document.getElementById('psh-link-row').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(_pshCardUrl); showToast('link copied!'); }
-  catch { showToast('could not copy'); }
+  catch { _copyToClipboard(_pshCardUrl); showToast('link copied!'); }
 });
 
 // ════════════════════════════════════════════════════════════
@@ -1924,5 +1959,28 @@ document.getElementById('psh-link-copy-btn').addEventListener('click', async () 
   <a href="privacy.html" style="font-size:9px;font-family:sans-serif;color:rgba(124,77,255,.18);text-decoration:none;letter-spacing:.04em;">privacy</a>
   <a href="terms.html"   style="font-size:9px;font-family:sans-serif;color:rgba(124,77,255,.18);text-decoration:none;letter-spacing:.04em;">terms</a>
 </div>
+
+<!-- App download banner — web only, shown once per device -->
+<div id="app-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:900;padding:14px 16px 22px;background:linear-gradient(180deg,rgba(13,10,24,0) 0%,rgba(13,10,24,.96) 24px,rgba(13,10,24,.99) 100%);display:none;align-items:center;gap:12px;">
+  <div style="display:flex;align-items:center;gap:10px;flex:1;">
+    <img src="icon.png" width="38" height="38" style="border-radius:10px;flex-shrink:0;" onerror="this.style.display='none'">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:#EDE8FF;font-family:var(--font);">dedic.to</div>
+      <div style="font-size:12px;color:rgba(196,172,255,.7);font-family:var(--font);">experience it fully in the app</div>
+    </div>
+  </div>
+  <a id="app-banner-dl" href="https://apps.apple.com/app/dedic-to/id0000000000" target="_blank" style="background:#BEFF29;color:#0D0A18;border-radius:50px;padding:9px 18px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:var(--font);">Get app</a>
+  <button id="app-banner-x" style="background:none;border:none;padding:4px;cursor:pointer;color:rgba(196,172,255,.5);font-size:20px;line-height:1;flex-shrink:0;">×</button>
+</div>
+<script>
+(function(){
+  if (isNativeApp() || localStorage.getItem('dedic_app_banner_seen')) return;
+  const banner = document.getElementById('app-banner');
+  const dismiss = () => { banner.style.display='none'; localStorage.setItem('dedic_app_banner_seen','1'); };
+  document.getElementById('app-banner-x').addEventListener('click', dismiss);
+  document.getElementById('app-banner-dl').addEventListener('click', dismiss);
+  setTimeout(() => { banner.style.display='flex'; }, 2000);
+})();
+</script>
 </body>
 </html>
