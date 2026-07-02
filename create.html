@@ -1776,7 +1776,6 @@ async function _shareToPlatform(platform) {
   closePlatSharePanel();
 
   if (isSocial) {
-    _copyToClipboard(link);
     const ok = await showStepsGuide(platform);
     if (!ok) return;
   }

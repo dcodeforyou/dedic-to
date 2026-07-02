@@ -1557,7 +1557,6 @@ async function _shareToPlatform(platform) {
       clearInterval(tick); overlay.classList.remove('show');
       // Show steps guide for social platforms after recording
       if (isSocial) {
-        _copyToClipboard(link);
         const ok = await showStepsGuide(platform);
         if (!ok) return;
       }
@@ -1586,7 +1585,6 @@ async function _shareToPlatform(platform) {
   // Image share
   closePlatShare();
   if (isSocial) {
-    _copyToClipboard(link);
     const ok = await showStepsGuide(platform);
     if (!ok) return;
   }
