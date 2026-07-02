@@ -1182,22 +1182,7 @@ async function generateInviteCard(displayName, cardUrl, displayUrl) {
   cx.fillStyle='rgba(196,172,255,0.80)'; cx.font='500 46px "Plus Jakarta Sans",sans-serif';
   cx.fillText('dedicate a song to me', W/2, ny); ny+=62;
   cx.fillStyle='rgba(196,172,255,0.55)'; cx.font='400 38px "Plus Jakarta Sans",sans-serif';
-  cx.fillText('anonymously', W/2, ny); ny+=80;
-
-  // Link pill with neon glow
-  cx.font='600 40px "Plus Jakarta Sans",sans-serif';
-  const pillText=displayUrl;
-  const pillW=Math.min(cx.measureText(pillText).width+100,W-120);
-  const pillH=92, pillX=(W-pillW)/2, pillY=ny;
-  cx.save();
-  cx.shadowColor='rgba(190,255,41,0.55)'; cx.shadowBlur=48;
-  cx.fillStyle='rgba(190,255,41,0.07)';
-  crRoundRect(cx,pillX,pillY,pillW,pillH,pillH/2); cx.fill();
-  cx.restore();
-  cx.strokeStyle='rgba(190,255,41,0.70)'; cx.lineWidth=2;
-  crRoundRect(cx,pillX,pillY,pillW,pillH,pillH/2); cx.stroke();
-  cx.fillStyle='#BEFF29';
-  cx.fillText(pillText,W/2,pillY+pillH/2+14);
+  cx.fillText('anonymously', W/2, ny);
 
   // Bottom CTA
   cx.fillStyle='rgba(245,240,255,0.88)'; cx.font='700 50px "Plus Jakarta Sans",sans-serif';
