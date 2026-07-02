@@ -581,6 +581,10 @@
     .sg-num { width:26px; height:26px; border-radius:50%; background:var(--purple,#7C4DFF); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
     .sg-text { font-size:15px; color:var(--text-primary,#0D0A18); line-height:1.5; }
     .sg-text b { color:var(--purple,#7C4DFF); font-weight:700; }
+    .sg-copy-link-btn { width:100%; padding:13px; border-radius:50px; background:rgba(190,255,41,.12); border:1.5px solid rgba(190,255,41,.35); color:#7CCC00; font-size:15px; font-weight:700; font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; margin-bottom:10px; letter-spacing:-.01em; }
+    body.dark .sg-copy-link-btn { background:rgba(190,255,41,.08); color:#BEFF29; }
+    .sg-copy-link-btn:active { opacity:.8; }
+    .sg-copied { font-size:13px; font-weight:600; color:#00C8A0; text-align:center; margin-bottom:10px; }
     .sg-cta { width:100%; padding:16px; border-radius:50px; background:var(--purple,#7C4DFF); color:#fff; border:none; font-size:16px; font-weight:800; font-family:var(--font); cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background .15s; letter-spacing:-.02em; }
     .sg-cta:active { opacity:.88; }
     body.dark .sg-panel { background:rgba(12,7,28,.97); }
@@ -743,9 +747,10 @@
 <div id="sg-scrim" class="sg-scrim"></div>
 <div id="sg-panel" class="sg-panel">
   <div class="sg-handle"></div>
-  <div class="sg-copied">✓ link copied to clipboard</div>
   <div class="sg-title" id="sg-title">Add your link in Instagram</div>
   <div class="sg-steps" id="sg-steps"></div>
+  <button class="sg-copy-link-btn" id="sg-copy-link-btn">copy link →</button>
+  <div class="sg-copied" id="sg-copied" style="display:none">✓ link copied to clipboard</div>
   <button class="sg-cta" id="sg-cta">Got it, open Instagram →</button>
 </div>
 
@@ -1741,30 +1746,29 @@ function _copyToClipboard(text) {
 // ── Steps guide ───────────────────────────────────────────
 const _SG = {
   insta: {
-    title: 'Add your link in Instagram',
+    title: 'Share to Instagram',
     cta: 'Got it, open Instagram →',
     steps: [
-      'Tap the <b>sticker icon</b> 😊 at the top of the screen',
-      'Tap <b>Link</b>',
-      '<b>Paste</b> — your dedication link is already copied',
-      'Place the sticker anywhere and <b>post</b> your story'
+      'Tap the <b>sticker icon</b> 😊 at the top',
+      'Tap <b>Link</b> → <b>Paste</b> your copied link',
+      'Place the sticker anywhere and <b>post!</b>'
     ]
   },
   snap: {
-    title: 'Add your link in Snapchat',
+    title: 'Share to Snapchat',
     cta: 'Got it, open Snapchat →',
     steps: [
-      'Tap the <b>paperclip icon</b> 📎 on the right side',
-      '<b>Paste</b> your link — it\'s already copied',
+      'Tap the <b>paperclip icon</b> 📎 on the right',
+      '<b>Paste</b> your copied link',
       '<b>Send</b> your snap'
     ]
   },
   tiktok: {
-    title: 'Add your link in TikTok',
+    title: 'Share to TikTok',
     cta: 'Got it, open TikTok →',
     steps: [
       'Tap <b>Add link</b> in the story editor',
-      '<b>Paste</b> your link — it\'s already copied',
+      '<b>Paste</b> your copied link',
       '<b>Post</b> your video'
     ]
   }
@@ -1779,6 +1783,7 @@ function showStepsGuide(platform) {
     document.getElementById('sg-steps').innerHTML = cfg.steps
       .map((s, i) => `<div class="sg-step"><div class="sg-num">${i+1}</div><div class="sg-text">${s}</div></div>`)
       .join('');
+    document.getElementById('sg-copied').style.display = 'none';
     document.getElementById('sg-scrim').classList.add('show');
     document.getElementById('sg-panel').classList.add('show');
   });
@@ -1788,7 +1793,19 @@ function closeStepsGuide(ok) {
   document.getElementById('sg-panel').classList.remove('show');
   if (_sgResolve) { _sgResolve(ok); _sgResolve = null; }
 }
-document.getElementById('sg-cta').addEventListener('click', () => closeStepsGuide(true));
+async function _sgCopyLink() {
+  const link = _pshCardUrl || _realOrigin();
+  try { await navigator.clipboard.writeText(link); } catch(_) { _copyToClipboard(link); }
+  const el = document.getElementById('sg-copied');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+document.getElementById('sg-copy-link-btn').addEventListener('click', _sgCopyLink);
+document.getElementById('sg-cta').addEventListener('click', async () => {
+  // Copy link on user gesture right before opening the app — most reliable moment
+  await _sgCopyLink();
+  closeStepsGuide(true);
+});
 document.getElementById('sg-scrim').addEventListener('click', () => closeStepsGuide(false));
 
 document.getElementById('psh-insta').addEventListener('click', () => _shareToPlatform('insta'));
