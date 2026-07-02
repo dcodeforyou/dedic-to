@@ -3,6 +3,12 @@
     "api/search.js":          { "maxDuration": 10 },
     "api/send-dedication.js": { "maxDuration": 15 }
   },
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+    }
+  ],
   "rewrites": [
     { "source": "/for/:hash", "destination": "/for-send.html?h=:hash" },
     { "source": "/for-send", "destination": "/for-send.html" },

@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.to.dedic.app",
+        "paths": ["/for/*", "/*"]
+      }
+    ]
+  }
+}
