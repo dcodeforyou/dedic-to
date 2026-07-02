@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.to.dedic.app",
+        "appID": "QSF494R78A.to.dedic.app",
         "paths": ["/for/*", "/*"]
       }
     ]
