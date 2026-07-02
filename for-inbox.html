@@ -1570,19 +1570,23 @@ async function _shareToPlatform(platform) {
   }
   try {
     const canvas = await _getPshCanvas();
-    const b64 = canvas.toDataURL('image/png').split(',')[1];
     if (isNativeApp()) {
       if (platform === 'insta') {
+        const storyCanvas = await _buildInstagramStoryCanvas(canvas, _pshCardTheme || 'dark', 'send me a song → tap the link 🎵');
+        const b64 = storyCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
         await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: b64, contentUrl: link, appId: META_APP_ID });
       } else if (platform === 'snap') {
+        const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToSnapchat({ stickerImageBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
       } else if (platform === 'tiktok') {
+        const b64 = canvas.toDataURL('image/png').split(',')[1];
         await window.CapacitorCustom?.shareToTikTok({ imageBase64: b64 });
       } else {
         await shareCard(canvas, 'dedic-to.png');
       }
     } else {
-      await navigator.share({ files: [new File([await (await fetch(canvas.toDataURL())).blob()], 'dedic-to.png', { type: 'image/png' })], title: 'dedic.to' });
+      const b64png = canvas.toDataURL('image/png').split(',')[1];
+      await navigator.share({ files: [new File([await (await fetch('data:image/png;base64,' + b64png)).blob()], 'dedic-to.png', { type: 'image/png' })], title: 'dedic.to' });
     }
   } catch(e) {
     if (e?.name === 'AbortError') return;
@@ -1590,6 +1594,51 @@ async function _shareToPlatform(platform) {
     if (msg.toLowerCase().includes('not installed')) showToast('Instagram not installed on this device');
     else showToast('could not share — try on a real device');
   }
+}
+
+async function _buildInstagramStoryCanvas(cardCanvas, theme, ctaText) {
+  const W = 1080, H = 1920;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  const g = ctx.createLinearGradient(0, 0, W * 0.4, H);
+  if (theme === 'light') {
+    g.addColorStop(0, '#EDE6FF'); g.addColorStop(1, '#C9B8FF');
+  } else if (theme === 'glass') {
+    g.addColorStop(0, '#08040E'); g.addColorStop(1, '#1A0A35');
+  } else {
+    g.addColorStop(0, '#0D0A18'); g.addColorStop(1, '#1C1040');
+  }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = theme === 'light' ? 'rgba(124,77,255,0.06)' : 'rgba(255,255,255,0.04)';
+  for (let x = 40; x < W; x += 60) for (let y = 40; y < H; y += 60) {
+    ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  const cw = Math.round(W * 0.65);
+  const ch = Math.round(cw * (cardCanvas.height / cardCanvas.width));
+  const cx = (W - cw) / 2;
+  const cy = Math.round((H - ch) / 2) - 120;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 80; ctx.shadowOffsetY = 30;
+  ctx.drawImage(cardCanvas, cx, cy, cw, ch);
+  ctx.restore();
+
+  const isDark = theme !== 'light';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = isDark ? 'rgba(245,240,255,0.92)' : 'rgba(13,10,24,0.88)';
+  ctx.font = `700 ${Math.round(W * 0.044)}px -apple-system,Arial,sans-serif`;
+  ctx.fillText(ctaText, W / 2, cy + ch + 100);
+
+  ctx.fillStyle = theme === 'light' ? 'rgba(124,77,255,0.70)' : 'rgba(190,255,41,0.70)';
+  ctx.font = `700 ${Math.round(W * 0.030)}px -apple-system,Arial,sans-serif`;
+  ctx.fillText('dedic.to', W / 2, H - 110);
+
+  return c;
 }
 
 function _copyToClipboard(text) {

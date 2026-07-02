@@ -1703,6 +1703,57 @@ async function _getPshAssets() {
   });
 }
 
+async function _buildInstagramStoryCanvas(cardCanvas, theme, ctaText) {
+  const W = 1080, H = 1920;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+
+  // Gradient background per theme
+  const g = ctx.createLinearGradient(0, 0, W * 0.4, H);
+  if (theme === 'light') {
+    g.addColorStop(0, '#EDE6FF'); g.addColorStop(1, '#C9B8FF');
+  } else if (theme === 'glass') {
+    g.addColorStop(0, '#08040E'); g.addColorStop(1, '#1A0A35');
+  } else {
+    g.addColorStop(0, '#0D0A18'); g.addColorStop(1, '#1C1040');
+  }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // Subtle dot grid for texture
+  ctx.fillStyle = theme === 'light' ? 'rgba(124,77,255,0.06)' : 'rgba(255,255,255,0.04)';
+  for (let x = 40; x < W; x += 60) for (let y = 40; y < H; y += 60) {
+    ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Card: 65% of story width, positioned at top with padding
+  const cw = Math.round(W * 0.65);
+  const ch = Math.round(cw * (cardCanvas.height / cardCanvas.width));
+  const cx = (W - cw) / 2;
+  const cy = Math.round((H - ch) / 2) - 120;
+
+  // Card shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.55)';
+  ctx.shadowBlur = 80; ctx.shadowOffsetY = 30;
+  ctx.drawImage(cardCanvas, cx, cy, cw, ch);
+  ctx.restore();
+
+  // CTA text below card
+  const isDark = theme !== 'light';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = isDark ? 'rgba(245,240,255,0.92)' : 'rgba(13,10,24,0.88)';
+  ctx.font = `700 ${Math.round(W * 0.044)}px -apple-system,Arial,sans-serif`;
+  ctx.fillText(ctaText, W / 2, cy + ch + 100);
+
+  // Dedic.to mark at bottom
+  ctx.fillStyle = theme === 'light' ? 'rgba(124,77,255,0.70)' : 'rgba(190,255,41,0.70)';
+  ctx.font = `700 ${Math.round(W * 0.030)}px -apple-system,Arial,sans-serif`;
+  ctx.fillText('dedic.to', W / 2, H - 110);
+
+  return c;
+}
+
 function _copyToClipboard(text) {
   // execCommand works reliably in WKWebView where navigator.clipboard may be blocked
   try {
@@ -1737,15 +1788,27 @@ async function _shareToPlatform(platform) {
     const toBase64 = blob => new Promise((res, rej) => {
       const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(blob);
     });
-    const b64 = await toBase64(vb || ib);
     const _plug = window.Capacitor?.Plugins?.CapacitorCustom;
     try {
       if (platform === 'insta') {
-        await _plug?.shareToInstagramStories({ backgroundVideoBase64: isVid ? b64 : undefined, backgroundImageBase64: isVid ? undefined : b64, contentUrl: link, appId: META_APP_ID });
-      } else if (platform === 'snap') {
-        await window.CapacitorCustom?.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
-      } else if (platform === 'tiktok') {
-        await window.CapacitorCustom?.shareToTikTok({ mediaBase64: b64, isVideo: isVid });
+        const theme = document.getElementById('story-card')?.dataset?.ctheme || 'dark';
+        let b64;
+        if (isVid) {
+          b64 = await toBase64(vb);
+          await _plug?.shareToInstagramStories({ backgroundVideoBase64: b64, contentUrl: link, appId: META_APP_ID });
+        } else {
+          const cardCanvas = await generateCardCanvas();
+          const storyCanvas = await _buildInstagramStoryCanvas(cardCanvas, theme, 'tap the link to dedicate a song 🎵');
+          b64 = storyCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+          await _plug?.shareToInstagramStories({ backgroundImageBase64: b64, contentUrl: link, appId: META_APP_ID });
+        }
+      } else {
+        const b64 = await toBase64(vb || ib);
+        if (platform === 'snap') {
+          await window.CapacitorCustom?.shareToSnapchat({ mediaBase64: b64, isVideo: isVid, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
+        } else if (platform === 'tiktok') {
+          await window.CapacitorCustom?.shareToTikTok({ mediaBase64: b64, isVideo: isVid });
+        }
       }
     } catch(e) {
       const msg = e?.message || '';
