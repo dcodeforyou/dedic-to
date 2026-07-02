@@ -1492,7 +1492,8 @@ function openPlatShare(pageRow, cardUrl, displayUrl) {
   _pshRow = pageRow; _pshCardUrl = cardUrl; _pshDisplayUrl = displayUrl; _pshDed = null;
   _cachedVideoBlob = null; _pshShareType = 'image';
   document.getElementById('psh-title').textContent = 'share your page';
-  document.getElementById('psh-link-row').style.display = 'none';
+  document.getElementById('psh-link-row').style.display = 'flex';
+  document.getElementById('psh-link-text').textContent = (cardUrl || '').replace(/^https?:\/\//, '');
   document.getElementById('psh-choice-row').style.display = 'none';
   document.getElementById('psh-ctheme-row').style.display = 'none';
   _updatePshBadges();
