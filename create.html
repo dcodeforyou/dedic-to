@@ -1508,20 +1508,26 @@ async function fetchSongs(q) {
   const term = encodeURIComponent(q.replace(/\s+/g, ' '));
   const itunesUrl = `https://itunes.apple.com/search?term=${term}&media=music&limit=8`;
 
-  const steps = [
-    () => attempt(`/api/search?q=${term}`, 10000),
-    () => attempt(itunesUrl, 12000),
-    () => attempt(`https://api.allorigins.win/raw?url=${encodeURIComponent(itunesUrl)}`, 10000, { credentials: 'omit' }),
-  ];
+  // Race the server proxy (absolute URL works in both web + native app) against
+  // the direct iTunes call — whichever replies first wins, no 10s serial wait.
+  const raceData = await Promise.any([
+    attempt('https://www.dedic.to/api/search?q=' + term, 9000),
+    attempt(itunesUrl, 9000),
+  ]).catch(() => null);
 
-  for (const step of steps) {
-    if (lastQuery !== q) return;
-    const data = await step();
-    if (lastQuery !== q) return;
-    if (data && data.results) {
-      renderResults(data.results.map(normalizeItunesTrack));
-      return;
-    }
+  if (lastQuery !== q) return;
+  if (raceData?.results) {
+    renderResults(raceData.results.map(normalizeItunesTrack));
+    return;
+  }
+
+  // Both failed — try allorigins as last resort
+  if (lastQuery !== q) return;
+  const fallback = await attempt(`https://api.allorigins.win/raw?url=${encodeURIComponent(itunesUrl)}`, 9000, { credentials: 'omit' });
+  if (lastQuery !== q) return;
+  if (fallback?.results) {
+    renderResults(fallback.results.map(normalizeItunesTrack));
+    return;
   }
 
   if (lastQuery === q) {
