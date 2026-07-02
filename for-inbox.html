@@ -1532,7 +1532,10 @@ async function _shareToPlatform(platform) {
     const b64 = canvas.toDataURL('image/png').split(',')[1];
     if (isNativeApp()) {
       if (platform === 'insta') {
-        await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: b64, contentUrl: link, appId: META_APP_ID });
+        try { await navigator.clipboard.writeText(link); } catch(_) {}
+        showToast('link copied — add a Link sticker in Instagram');
+        await new Promise(r => setTimeout(r, 900));
+        await window.CapacitorCustom?.shareToInstagramStories({ backgroundImageBase64: b64, appId: META_APP_ID });
       } else if (platform === 'snap') {
         await window.CapacitorCustom?.shareToSnapchat({ stickerImageBase64: b64, attachmentUrl: link, appId: SNAPCHAT_APP_ID });
       } else if (platform === 'tiktok') {
