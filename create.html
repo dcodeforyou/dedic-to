@@ -1703,15 +1703,28 @@ async function _getPshAssets() {
   });
 }
 
+function _copyToClipboard(text) {
+  // execCommand works reliably in WKWebView where navigator.clipboard may be blocked
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;font-size:16px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch(_) {}
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(() => {});
+}
+
 async function _shareToPlatform(platform) {
   const link = shareUrl || location.origin;
   const isSocial = ['insta', 'snap', 'tiktok'].includes(platform);
 
   closePlatSharePanel();
 
-  // Show steps guide for social platforms — copy link first, then guide, then share
   if (isSocial) {
-    try { await navigator.clipboard.writeText(link); } catch(_) {}
+    _copyToClipboard(link);
     const ok = await showStepsGuide(platform);
     if (!ok) return;
   }
@@ -1823,9 +1836,9 @@ document.getElementById('psh-tiktok').addEventListener('click',() => _shareToPla
 document.getElementById('psh-scrim').addEventListener('click', closePlatSharePanel);
 document.getElementById('psh-cancel').addEventListener('click', closePlatSharePanel);
 
-document.getElementById('psh-copy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(shareUrl || location.origin); showToast('link copied!'); }
-  catch { showToast('copy failed'); }
+document.getElementById('psh-copy').addEventListener('click', () => {
+  _copyToClipboard(shareUrl || location.origin);
+  showToast('link copied!');
   closePlatSharePanel();
 });
 
